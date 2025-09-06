@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import DOMPurify from 'dompurify';
 
 interface RichTextViewerProps {
   html: string;
@@ -8,11 +9,17 @@ interface RichTextViewerProps {
 }
 
 export const RichTextViewer: React.FC<RichTextViewerProps> = ({ html, className }) => {
+  // Nettoyer le HTML pour prévenir les attaques XSS
+  const sanitizedHtml = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+    ALLOWED_ATTR: ['class']
+  });
+
   return (
     <div className={cn('rich-text-viewer', className)}>
       <div
         className="rich-text-content prose prose-sm max-w-none text-foreground"
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
       />
       <style
         // Styles scoppés au viewer pour garantir l'affichage des puces et de l'indentation
