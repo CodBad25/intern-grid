@@ -133,7 +133,12 @@ export function useNotifications() {
 
       if (eventType === 'INSERT') {
         const newNotification = newRecord as SupabaseNotification;
-        setNotifications(prev => [newNotification, ...prev]);
+        // Prevent duplicates by checking if notification already exists
+        setNotifications(prev => {
+          const exists = prev.find(n => n.id === newNotification.id);
+          if (exists) return prev;
+          return [newNotification, ...prev];
+        });
         if (!newNotification.read) {
           setUnreadCount(prev => prev + 1);
         }
