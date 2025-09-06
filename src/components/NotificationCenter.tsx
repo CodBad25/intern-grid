@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { useNotifications } from '@/context/NotificationContext';
+import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
@@ -16,7 +16,7 @@ export function NotificationCenter() {
     unreadCount,
     markAsRead,
     markAllAsRead,
-    removeNotification
+    deleteNotification
   } = useNotifications();
 
   const getNotificationIcon = (type: string) => {
@@ -30,10 +30,10 @@ export function NotificationCenter() {
 
   const getNotificationColor = (type: string) => {
     switch (type) {
-      case 'success': return 'bg-green-50 border-green-200';
-      case 'warning': return 'bg-yellow-50 border-yellow-200';
-      case 'error': return 'bg-red-50 border-red-200';
-      default: return 'bg-blue-50 border-blue-200';
+      case 'success': return 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800';
+      case 'warning': return 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-800';
+      case 'error': return 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800';
+      default: return 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800';
     }
   };
 
@@ -99,26 +99,26 @@ export function NotificationCenter() {
                       </div>
                       
                       <p className="text-xs text-muted-foreground mb-2">
-                        {notification.message}
+                        {notification.content}
                       </p>
                       
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(notification.timestamp, {
+                          {formatDistanceToNow(new Date(notification.created_at), {
                             addSuffix: true,
                             locale: fr
                           })}
                         </span>
                         
                         <div className="flex items-center space-x-1">
-                          {notification.actionUrl && (
+                          {notification.action_url && (
                             <Button
                               variant="ghost"
                               size="sm"
                               asChild
                               className="h-6 px-2"
                             >
-                              <Link to={notification.actionUrl}>
+                              <Link to={notification.action_url}>
                                 <ExternalLink className="w-3 h-3" />
                               </Link>
                             </Button>
@@ -138,7 +138,7 @@ export function NotificationCenter() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeNotification(notification.id)}
+                            onClick={() => deleteNotification(notification.id)}
                             className="h-6 px-2 text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-3 h-3" />
