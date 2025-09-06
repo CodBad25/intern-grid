@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, MessageSquare, Calendar, FileText, Users, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export interface Notification {
   id: string;
@@ -74,6 +75,7 @@ interface NotificationProviderProps {
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filters, setFiltersState] = useState<NotificationContextType['filters']>({
     type: 'all',
@@ -82,6 +84,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   });
 
   const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'timestamp' | 'read' | 'createdAt'>) => {
+    // If this notification targets a specific user different from the current user,
+    // ignore it locally to avoid duplicates meant for other recipients.
+    if (notificationData.userId && user?.id && notificationData.userId !== user.id) {
+      return;
+    }
+
     const now = new Date();
     const newNotification: Notification = {
       ...notificationData,
@@ -92,7 +100,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     };
 
     setNotifications(prev => [newNotification, ...prev.slice(0, 49)]); // Keep only 50 most recent
-  }, []);
+  }, [user?.id]);
 
   const markAsRead = useCallback((id: string) => {
     setNotifications(prev =>
