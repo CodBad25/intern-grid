@@ -1,7 +1,7 @@
 project_id = "crubptrkqcvedvpxmplx"
 
 [functions.manage-demo-users]
-verify_jwt = false
+verify_jwt = true
 
 [functions.manage_demo_users]
-verify_jwt = false
+verify_jwt = true
