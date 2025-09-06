@@ -36,8 +36,10 @@ export function useNotifications() {
 
       if (error) throw error;
       
-      setNotifications((data || []) as SupabaseNotification[]);
-      setUnreadCount((data || []).filter(n => !n.read).length);
+      const list = (data || []) as SupabaseNotification[];
+      const unique = Array.from(new Map(list.map(n => [n.id, n])).values());
+      setNotifications(unique);
+      setUnreadCount(unique.filter(n => !n.read).length);
     } catch (error) {
       console.error('Erreur lors du chargement des notifications:', error);
     } finally {
@@ -135,29 +137,33 @@ export function useNotifications() {
         const newNotification = newRecord as SupabaseNotification;
         // Prevent duplicates by checking if notification already exists
         setNotifications(prev => {
-          const exists = prev.find(n => n.id === newNotification.id);
+          const exists = prev.some(n => n.id === newNotification.id);
           if (exists) return prev;
+          if (!newNotification.read) {
+            setUnreadCount(p => p + 1);
+          }
           return [newNotification, ...prev];
         });
-        if (!newNotification.read) {
-          setUnreadCount(prev => prev + 1);
-        }
       } else if (eventType === 'UPDATE') {
         const updatedNotification = newRecord as SupabaseNotification;
-        setNotifications(prev =>
-          prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
-        );
-        // Recalculate unread count based on the change
-        const oldNotification = oldRecord as SupabaseNotification;
-        if (oldNotification.read !== updatedNotification.read) {
-          setUnreadCount(prev => prev + (updatedNotification.read ? -1 : 1));
-        }
+        setNotifications(prev => {
+          const existing = prev.find(n => n.id === updatedNotification.id);
+          const next = prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n));
+          if (existing && existing.read !== updatedNotification.read) {
+            setUnreadCount(p => p + (updatedNotification.read ? -1 : 1));
+          }
+          return next;
+        });
       } else if (eventType === 'DELETE') {
         const deletedNotification = oldRecord as SupabaseNotification;
-        setNotifications(prev => prev.filter(n => n.id !== deletedNotification.id));
-        if (!deletedNotification.read) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
+        setNotifications(prev => {
+          const existed = prev.find(n => n.id === deletedNotification.id);
+          const next = prev.filter(n => n.id !== deletedNotification.id);
+          if (existed && !existed.read) {
+            setUnreadCount(p => Math.max(0, p - 1));
+          }
+          return next;
+        });
       }
     };
 
