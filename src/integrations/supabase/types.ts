@@ -448,6 +448,60 @@ export type Database = {
           },
         ]
       }
+      seance_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          seance_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          seance_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          seance_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      seance_responses: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          seance_id: string
+          shared_with_peers: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          seance_id: string
+          shared_with_peers?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          seance_id?: string
+          shared_with_peers?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seances: {
         Row: {
           created_at: string

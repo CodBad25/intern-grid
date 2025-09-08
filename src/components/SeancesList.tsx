@@ -10,6 +10,7 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { EmptyState } from './EmptyState';
 import { TutorName } from '@/components/TutorName';
+import { SeanceReactionsAndResponses } from '@/components/SeanceReactionsAndResponses';
 import { Calendar, Clock, Edit2, Trash2, MoreHorizontal, Eye, BookOpen, GraduationCap, UserCheck } from 'lucide-react';
 
 const SEANCE_TYPE_ICONS = {
@@ -134,7 +135,7 @@ export function SeancesList({
                   
                   <RichTextViewer html={seance.notes} className="mb-2" />
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-2">
                     <TutorName 
                       name={seance.tuteurName || 'Utilisateur inconnu'}
                       variant="inline"
@@ -144,6 +145,12 @@ export function SeancesList({
                       {format(parseISO(seance.createdAt), 'dd/MM/yyyy à HH:mm')}
                     </span>
                   </div>
+
+                  {/* Système de réactions et réponses */}
+                  <SeanceReactionsAndResponses 
+                    seanceId={seance.id}
+                    seanceAuthorId={seance.tuteurId}
+                  />
                 </div>
 
                 {canModify(seance) && (
