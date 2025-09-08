@@ -8,7 +8,9 @@ import {
   ListOrdered, 
   Palette,
   Type,
-  Mic
+  Mic,
+  Indent,
+  Outdent
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoiceInput } from '@/components/VoiceInput';
@@ -117,6 +119,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           break;
       }
     }
+    
+    // Gérer l'indentation avec Tab
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        executeCommand('outdent');
+      } else {
+        executeCommand('indent');
+      }
+    }
   }, [executeCommand]);
 
   const handleSelectionChange = useCallback(() => {
@@ -205,6 +217,30 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           )}
         >
           <ListOrdered className="w-4 h-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('indent')}
+          className="h-8 w-8 p-0"
+          title="Augmenter l'indentation"
+        >
+          <Indent className="w-4 h-4" />
+        </Button>
+        
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => executeCommand('outdent')}
+          className="h-8 w-8 p-0"
+          title="Diminuer l'indentation"
+        >
+          <Outdent className="w-4 h-4" />
         </Button>
 
         <div className="w-px h-6 bg-border mx-1" />
@@ -323,6 +359,30 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           
           .rich-text-editor .rich-text-content ol li {
             list-style-type: decimal;
+          }
+          
+          /* Styles pour les sous-listes indentées */
+          .rich-text-editor .rich-text-content ul ul,
+          .rich-text-editor .rich-text-content ol ol,
+          .rich-text-editor .rich-text-content ul ol,
+          .rich-text-editor .rich-text-content ol ul {
+            margin-left: 2rem;
+          }
+          
+          .rich-text-editor .rich-text-content ul ul li {
+            list-style-type: circle;
+          }
+          
+          .rich-text-editor .rich-text-content ul ul ul li {
+            list-style-type: square;
+          }
+          
+          /* Support pour l'indentation des blocs */
+          .rich-text-editor .rich-text-content blockquote,
+          .rich-text-editor .rich-text-content [style*="margin-left"] {
+            border-left: 3px solid hsl(var(--border));
+            padding-left: 1rem;
+            margin-left: 1rem;
           }
           
           .rich-text-editor .rich-text-content p {
