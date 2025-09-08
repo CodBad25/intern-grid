@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { RichTextViewer } from '@/components/RichTextViewer';
 import { Seance } from '../types';
+import { SupabaseSeance } from '../hooks/useSeances';
 import { SEANCE_TYPES } from '../types';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -47,10 +48,10 @@ const getCreneauBadgeColor = (creneau: string) => {
 };
 
 interface SeancesListProps {
-  filteredSeances: Seance[];
-  canModify: (seance: Seance) => boolean;
-  handleEdit: (seance: Seance) => void;
-  handleDelete: (seance: Seance) => void;
+  filteredSeances: SupabaseSeance[];
+  canModify: (seance: SupabaseSeance) => boolean;
+  handleEdit: (seance: SupabaseSeance) => void;
+  handleDelete: (seance: SupabaseSeance) => void;
   searchTerm: string;
   typeFilter: string;
   userRole?: string;
@@ -137,19 +138,19 @@ export function SeancesList({
 
                   <div className="flex items-center justify-between mb-2">
                     <TutorName 
-                      name={seance.tuteurName || 'Utilisateur inconnu'}
+                      name={seance.profiles?.display_name || `Utilisateur ${seance.tuteur_id.slice(-4)}`}
                       variant="inline"
                       size="sm"
                     />
                     <span className="text-xs text-muted-foreground">
-                      {format(parseISO(seance.createdAt), 'dd/MM/yyyy à HH:mm')}
+                      {format(parseISO(seance.created_at), 'dd/MM/yyyy à HH:mm')}
                     </span>
                   </div>
 
                   {/* Système de réactions et réponses */}
                   <SeanceReactionsAndResponses 
                     seanceId={seance.id}
-                    seanceAuthorId={seance.tuteurId}
+                    seanceAuthorId={seance.tuteur_id}
                   />
                 </div>
 

@@ -185,7 +185,10 @@ export function SeanceForm({
           <Label htmlFor="notes">Notes et observations</Label>
           <RichTextEditor
             value={formData.notes}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+            onValueChange={(value) => {
+              const newFormData = { ...formData, notes: value };
+              setFormData(prev => ({ ...prev, notes: value }));
+            }}
             placeholder="Décrivez le contenu de la séance, les points abordés..."
             rows={6}
           />

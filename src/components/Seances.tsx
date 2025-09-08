@@ -26,18 +26,21 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
-import { useData } from '../context/DataContext';
+import { useSeances } from '../hooks/useSeances';
 import { Seance } from '../types';
+import { SupabaseSeance } from '../hooks/useSeances';
 import { useAuth } from '../context/AuthContext';
 import { SEANCE_TYPES, ALL_CRENEAUX } from '../types';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { useEffect } from 'react';
 import { EmptyState } from './EmptyState';
 import { LoadingSpinner } from './LoadingSpinner';
 import { TutorName } from '@/components/TutorName';
 import { SeanceForm } from './SeanceForm';
+import { useAutoSave } from '../hooks/useAutoSave';
 import { SeancesList } from './SeancesList';
 import { SeanceFilters } from './SeanceFilters';
 import { SeancesHeader } from './SeancesHeader';
@@ -90,9 +93,10 @@ const defaultFormData: SeanceFormData = {
 
 export function Seances() {
   const { user } = useAuth();
-  const { seances, addSeance, updateSeance, deleteSeance } = useData();
+  const { seances, isLoading: seancesLoading, fetchSeances, addSeance, updateSeance, deleteSeance } = useSeances();
+  const { scheduleAutoSave, loadFromLocalStorage, clearAutoSave } = useAutoSave();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingSeance, setEditingSeance] = useState<Seance | null>(null);
+  const [editingSeance, setEditingSeance] = useState<SupabaseSeance | null>(null);
   const [formData, setFormData] = useState<SeanceFormData>(defaultFormData);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -107,16 +111,41 @@ export function Seances() {
 
   const filteredSeances = useMemo(() => {
     return seances.filter(seance => {
+      const tutorName = seance.profiles?.display_name || `Utilisateur ${seance.tuteur_id.slice(-4)}`;
       const matchesSearch = seance.notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (seance.tuteurName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                           tutorName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === 'all' || seance.type === typeFilter;
       return matchesSearch && matchesType;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [seances, searchTerm, typeFilter]);
 
+  // Charger les séances au montage
+  useEffect(() => {
+    fetchSeances();
+  }, [fetchSeances]);
+
+  // Charger une auto-sauvegarde au montage si disponible
+  useEffect(() => {
+    if (!editingSeance) {
+      const savedData = loadFromLocalStorage();
+      if (savedData) {
+        setFormData(savedData);
+        toast.success('Brouillon récupéré automatiquement', { duration: 3000 });
+      }
+    }
+  }, [loadFromLocalStorage, editingSeance]);
+
+  // Auto-sauvegarde des données du formulaire
+  useEffect(() => {
+    if (isFormOpen && !editingSeance && formData.notes.length > 10) {
+      scheduleAutoSave(formData);
+    }
+  }, [formData, isFormOpen, editingSeance, scheduleAutoSave]);
+
   const resetForm = () => {
     setFormData(defaultFormData);
     setEditingSeance(null);
+    clearAutoSave();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,32 +163,33 @@ export function Seances() {
         date: formData.date,
         duree: formData.duree,
         type: formData.type,
-        horaireMode: formData.horaireMode,
+        horaire_mode: formData.horaireMode || 'ordinaire',
         ...(formData.horaireMode === 'creneau' && formData.creneau && { creneau: formData.creneau }),
         ...(formData.horaireMode === 'ordinaire' && { heure: formData.heure }),
         notes: notesToSave,
-        tuteurId: editingSeance ? editingSeance.tuteurId : user.id,
-        tuteurName: editingSeance ? editingSeance.tuteurName : user.name,
+        shared_with_peers: true,
       };
 
       if (editingSeance) {
-        updateSeance(editingSeance.id, seanceData);
+        await updateSeance(editingSeance.id, seanceData);
         toast.success('Séance modifiée avec succès');
       } else {
-        addSeance(seanceData);
+        await addSeance(seanceData);
         toast.success('Séance ajoutée avec succès');
       }
 
       setIsFormOpen(false);
       resetForm();
+      clearAutoSave();
     } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
       toast.error('Erreur lors de la sauvegarde');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEdit = (seance: Seance) => {
+  const handleEdit = (seance: SupabaseSeance) => {
     setEditingSeance(seance);
 
     // Si type = "autre", on récupère le libellé personnalisé au début des notes
@@ -174,8 +204,8 @@ export function Seances() {
     setFormData({
       date: seance.date,
       duree: seance.duree,
-      type: seance.type,
-      horaireMode: (seance.horaireMode || 'ordinaire') as 'ordinaire' | 'creneau',
+      type: seance.type as Seance['type'],
+      horaireMode: (seance.horaire_mode || 'ordinaire') as 'ordinaire' | 'creneau',
       heure: seance.heure || '09:00',
       creneau: (seance.creneau || '') as typeof ALL_CRENEAUX[number] | '',
       notes: cleanNotes,
@@ -184,7 +214,7 @@ export function Seances() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (seance: Seance) => {
+  const handleDelete = (seance: SupabaseSeance) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette séance ?')) {
       try {
         deleteSeance(seance.id);
@@ -195,8 +225,8 @@ export function Seances() {
     }
   };
 
-  const canModify = (seance: Seance) => {
-    return user?.role === 'admin' || seance.tuteurId === user?.id;
+  const canModify = (seance: SupabaseSeance) => {
+    return user?.role === 'admin' || seance.tuteur_id === user?.id;
   };
 
   return (
@@ -206,7 +236,7 @@ export function Seances() {
         isFormOpen={isFormOpen}
         setIsFormOpen={setIsFormOpen}
         resetForm={resetForm}
-        editingSeance={editingSeance}
+        editingSeance={editingSeance as any}
         formData={formData}
         setFormData={setFormData}
         handleSubmit={handleSubmit}
