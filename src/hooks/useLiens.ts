@@ -50,8 +50,11 @@ export function useLiens() {
         .eq('source_type', sourceType)
         .eq('source_id', sourceId);
 
+      // Filter out duplicates and empty URLs
+      const uniqueUrls = [...new Set(urls.filter(url => url.trim()))];
+      
       // Add new links
-      const newLiens = urls.map(url => ({
+      const newLiens = uniqueUrls.map(url => ({
         user_id: user.id,
         url,
         source_type: sourceType,
@@ -59,11 +62,13 @@ export function useLiens() {
         title: extractTitleFromUrl(url)
       }));
 
-      const { error } = await supabase
-        .from('liens')
-        .insert(newLiens);
+      if (newLiens.length > 0) {
+        const { error } = await supabase
+          .from('liens')
+          .insert(newLiens);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
       
       // Refresh the list
       fetchLiens();

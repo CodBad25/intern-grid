@@ -460,6 +460,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           .rich-text-editor .rich-text-content u {
             text-decoration: underline;
           }
+          
+          .rich-text-editor .rich-text-content a {
+            color: hsl(var(--primary));
+            text-decoration: underline;
+            cursor: pointer;
+          }
+          
+          .rich-text-editor .rich-text-content a:hover {
+            color: hsl(var(--primary) / 0.8);
+          }
         `
       }} />
     </div>

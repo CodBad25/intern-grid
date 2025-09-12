@@ -34,6 +34,7 @@ import toast from 'react-hot-toast';
 import { EmptyState } from './EmptyState';
 import { LoadingSpinner } from './LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
+import { useLiens } from '@/hooks/useLiens';
 
 interface DocumentFormData {
   titre: string;
@@ -56,6 +57,7 @@ const defaultFormData: DocumentFormData = {
 export function Documents() {
   const { user } = useAuth();
   const { documents, addDocument, deleteDocument } = useData();
+  const { liens, isLoading: liensLoading } = useLiens();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState<DocumentFormData>(defaultFormData);
   const [searchTerm, setSearchTerm] = useState('');
@@ -527,6 +529,63 @@ export function Documents() {
           </div>
         )}
       </div>
+
+      {/* Section des liens extraits */}
+      {liens.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LinkIcon className="w-5 h-5" />
+              Liens extraits ({liens.length})
+            </CardTitle>
+            <CardDescription>
+              Liens détectés automatiquement dans vos séances
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {Object.entries(liens.reduce((acc, lien) => {
+              const key = lien.source_type;
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(lien);
+              return acc;
+            }, {} as Record<string, typeof liens>)).map(([sourceType, sourceLiens]) => (
+              <div key={sourceType} className="space-y-2">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {sourceType}
+                  </Badge>
+                  <span>({sourceLiens.length})</span>
+                </h4>
+                <div className="space-y-2">
+                  {sourceLiens.map((lien) => (
+                    <div
+                      key={lien.id}
+                      className="flex items-center justify-between p-2 border rounded-md hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {lien.title || lien.url}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {lien.url}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleOpenLink(lien.url)}
+                        className="ml-2 shrink-0"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
