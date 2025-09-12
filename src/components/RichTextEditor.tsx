@@ -10,7 +10,9 @@ import {
   Type,
   Mic,
   Indent,
-  Outdent
+  Outdent,
+  Link,
+  Unlink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VoiceInput } from '@/components/VoiceInput';
@@ -22,6 +24,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   rows?: number;
+  onLinksExtracted?: (links: string[]) => void;
 }
 
 const COLORS = [
@@ -35,19 +38,34 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onValueChange,
   placeholder,
   className,
-  rows = 4
+  rows = 4,
+  onLinksExtracted
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set());
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+
+  const extractLinks = useCallback((content: string) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    const links = Array.from(tempDiv.querySelectorAll('a[href]')).map(a => (a as HTMLAnchorElement).href);
+    return links;
+  }, []);
 
   const handleInput = useCallback(() => {
     if (editorRef.current && onValueChange) {
       const content = editorRef.current.innerHTML;
       onValueChange(content);
       updateActiveFormats();
+      
+      // Extract and notify about links
+      if (onLinksExtracted) {
+        const links = extractLinks(content);
+        onLinksExtracted(links);
+      }
     }
-  }, [onValueChange]);
+  }, [onValueChange, onLinksExtracted, extractLinks]);
 
   const updateActiveFormats = useCallback(() => {
     const selection = window.getSelection();
@@ -79,6 +97,24 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       console.error('Erreur lors de l\'exécution de la commande:', error);
     }
   }, [handleInput, updateActiveFormats]);
+
+  const createLink = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const url = prompt('URL du lien:');
+    if (url && url.trim()) {
+      let finalUrl = url.trim();
+      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+        finalUrl = 'https://' + finalUrl;
+      }
+      executeCommand('createLink', finalUrl);
+    }
+  }, [executeCommand]);
+
+  const removeLink = useCallback(() => {
+    executeCommand('unlink');
+  }, [executeCommand]);
 
   const handleVoiceTranscript = useCallback((transcript: string) => {
     if (editorRef.current) {
@@ -241,6 +277,30 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           title="Diminuer l'indentation"
         >
           <Outdent className="w-4 h-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={createLink}
+          className="h-8 w-8 p-0"
+          title="Insérer un lien"
+        >
+          <Link className="w-4 h-4" />
+        </Button>
+        
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={removeLink}
+          className="h-8 w-8 p-0"
+          title="Supprimer le lien"
+        >
+          <Unlink className="w-4 h-4" />
         </Button>
 
         <div className="w-px h-6 bg-border mx-1" />

@@ -7,6 +7,7 @@ import { QuickActions } from './QuickActions';
 import { StatsGrid } from './analytics/StatsGrid';
 import { AnalyticsSection } from './analytics/AnalyticsSection';
 import { RecentContent } from './analytics/RecentContent';
+import { LiensSection } from './LiensSection';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -74,6 +75,9 @@ export const Dashboard: React.FC = () => {
         recentDocuments={recentDocuments}
         recentCommentaires={recentCommentaires}
       />
+
+      {/* Section des liens extraits */}
+      <LiensSection />
     </div>
   );
 };

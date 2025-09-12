@@ -10,6 +10,7 @@ import { SEANCE_TYPES, ALL_CRENEAUX } from '../types';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Eye, BookOpen, GraduationCap, UserCheck, MoreHorizontal } from 'lucide-react';
+import { useLiens } from '@/hooks/useLiens';
 
 const SEANCE_TYPE_ICONS = {
   visite: Eye,
@@ -51,6 +52,13 @@ export function SeanceForm({
   isLoading,
 }: SeanceFormProps) {
   const selectableSeanceTypes = SEANCE_TYPES.filter(t => t.value !== 'formation' && t.value !== 'evaluation');
+  const { saveLiens } = useLiens();
+
+  const handleLinksExtracted = (links: string[]) => {
+    if (editingSeance && links.length > 0) {
+      saveLiens(links, 'seance', editingSeance.id);
+    }
+  };
 
   return (
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -189,6 +197,7 @@ export function SeanceForm({
               const newFormData = { ...formData, notes: value };
               setFormData(prev => ({ ...prev, notes: value }));
             }}
+            onLinksExtracted={handleLinksExtracted}
             placeholder="Décrivez le contenu de la séance, les points abordés..."
             rows={6}
           />

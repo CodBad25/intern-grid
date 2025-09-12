@@ -149,6 +149,42 @@ export type Database = {
           },
         ]
       }
+      liens: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          source_id: string
+          source_type: string
+          title: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_id: string
+          source_type: string
+          title?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_id?: string
+          source_type?: string
+          title?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
