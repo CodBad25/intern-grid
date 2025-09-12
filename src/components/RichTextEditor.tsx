@@ -53,19 +53,75 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     return links;
   }, []);
 
+  // Convert plain text URLs into clickable <a> tags and normalize them
+  const convertPlainUrlsToLinks = useCallback((html: string) => {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    const urlRegex = /(https?:\/\/[^\s<]+)|(www\.[^\s<]+)/gi;
+
+    const processNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        if (!urlRegex.test(text)) return;
+
+        const parts = text.split(urlRegex).filter(Boolean);
+        const frag = document.createDocumentFragment();
+
+        parts.forEach((part) => {
+          if (urlRegex.test(part)) {
+            let href = part;
+            if (!/^https?:\/\//i.test(href)) {
+              href = 'https://' + href;
+            }
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = part;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            frag.appendChild(a);
+          } else {
+            frag.appendChild(document.createTextNode(part));
+          }
+        });
+
+        node.parentNode?.replaceChild(frag, node);
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Don't process inside anchors
+        if ((node as HTMLElement).tagName.toLowerCase() === 'a') return;
+        Array.from(node.childNodes).forEach(processNode);
+      }
+    };
+
+    Array.from(container.childNodes).forEach(processNode);
+
+    // Ensure anchors have target and rel
+    container.querySelectorAll('a[href]').forEach((a) => {
+      const anchor = a as HTMLAnchorElement;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+    });
+
+    return container.innerHTML;
+  }, []);
+
   const handleInput = useCallback(() => {
     if (editorRef.current && onValueChange) {
-      const content = editorRef.current.innerHTML;
-      onValueChange(content);
+      const original = editorRef.current.innerHTML;
+      const linked = convertPlainUrlsToLinks(original);
+      if (linked !== original) {
+        editorRef.current.innerHTML = linked;
+      }
+      onValueChange(linked);
       updateActiveFormats();
       
       // Extract and notify about links
       if (onLinksExtracted) {
-        const links = extractLinks(content);
-        onLinksExtracted(links);
+        const links = extractLinks(linked);
+        onLinksExtracted([...new Set(links)]);
       }
     }
-  }, [onValueChange, onLinksExtracted, extractLinks]);
+  }, [onValueChange, onLinksExtracted, extractLinks, convertPlainUrlsToLinks]);
 
   const updateActiveFormats = useCallback(() => {
     const selection = window.getSelection();

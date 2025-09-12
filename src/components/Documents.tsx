@@ -95,15 +95,49 @@ export function Documents() {
 
   const isFormValid = Object.keys(errors).length === 0;
 
+  const combinedDocuments = useMemo(() => {
+    const docs = [...documents];
+
+    const lienDocs: Document[] = liens.map((l) => {
+      let title = l.title;
+      if (!title) {
+        try {
+          const u = new URL(l.url);
+          title = u.hostname.replace('www.', '');
+        } catch {
+          title = l.url;
+        }
+      }
+      return {
+        id: `lien:${l.id}`,
+        titre: title || l.url,
+        type: 'lien',
+        url: l.url,
+        description: l.description || '',
+        tuteurId: l.user_id,
+        tuteurName: '',
+        createdAt: l.created_at,
+      } as Document;
+    });
+
+    // Dedupe by URL against existing 'lien' documents
+    const existingLienUrls = new Set(
+      docs.filter(d => d.type === 'lien' && d.url).map(d => d.url as string)
+    );
+    const filteredLienDocs = lienDocs.filter(ld => ld.url && !existingLienUrls.has(ld.url));
+
+    return [...docs, ...filteredLienDocs];
+  }, [documents, liens]);
+
   const filteredDocuments = useMemo(() => {
-    return documents.filter(document => {
+    return combinedDocuments.filter(document => {
       const matchesSearch = document.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            document.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            (document.tuteurName || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === 'all' || document.type === typeFilter;
       return matchesSearch && matchesType;
     }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [documents, searchTerm, typeFilter]);
+  }, [combinedDocuments, searchTerm, typeFilter]);
 
   const resetForm = () => {
     setFormData(defaultFormData);
@@ -437,9 +471,10 @@ export function Documents() {
       {/* Documents List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredDocuments.length > 0 ? (
-          filteredDocuments.map((document, index) => {
-            const Icon = getDocumentIcon(document.type as 'document' | 'lien');
-            return (
+           filteredDocuments.map((document, index) => {
+             const Icon = getDocumentIcon(document.type as 'document' | 'lien');
+             const isFromDocuments = documents.some(d => d.id === document.id);
+             return (
               <Card key={document.id} className="hover-lift animate-fade-in group" style={{ animationDelay: `${index * 0.05}s` }}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -530,62 +565,6 @@ export function Documents() {
         )}
       </div>
 
-      {/* Section des liens extraits */}
-      {liens.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LinkIcon className="w-5 h-5" />
-              Liens extraits ({liens.length})
-            </CardTitle>
-            <CardDescription>
-              Liens détectés automatiquement dans vos séances
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {Object.entries(liens.reduce((acc, lien) => {
-              const key = lien.source_type;
-              if (!acc[key]) acc[key] = [];
-              acc[key].push(lien);
-              return acc;
-            }, {} as Record<string, typeof liens>)).map(([sourceType, sourceLiens]) => (
-              <div key={sourceType} className="space-y-2">
-                <h4 className="font-medium text-sm flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {sourceType}
-                  </Badge>
-                  <span>({sourceLiens.length})</span>
-                </h4>
-                <div className="space-y-2">
-                  {sourceLiens.map((lien) => (
-                    <div
-                      key={lien.id}
-                      className="flex items-center justify-between p-2 border rounded-md hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {lien.title || lien.url}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {lien.url}
-                        </p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleOpenLink(lien.url)}
-                        className="ml-2 shrink-0"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
