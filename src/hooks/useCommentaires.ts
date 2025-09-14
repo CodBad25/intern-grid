@@ -15,8 +15,9 @@ export type SupabaseReponse = Tables<'reponses'> & {
 };
 
 type NewCommentaireInput = {
-  type: 'remarque' | 'question' | string;
+  type: 'remarque' | 'question';
   content: string;
+  tuteur_id: string;
 };
 
 type UpdateCommentaireInput = {
@@ -27,6 +28,7 @@ type NewReponseInput = {
   commentaire_id: string;
   content: string;
   shared_with_peers: boolean;
+  tuteur_id: string;
 };
 
 type UpdateReponseInput = {
@@ -111,7 +113,7 @@ export function useCommentaires() {
     try {
       const { data, error } = await supabase
         .from('commentaires')
-        .insert({ ...commentaire, tuteur_id: user.id })
+        .insert(commentaire)
         .select()
         .single();
 
@@ -120,7 +122,7 @@ export function useCommentaires() {
       
       // Envoi de la notification Supabase
       if (isNotificationPermitted('new_comment')) {
-        await sendCommentNotification(commentaire.type, user?.name);
+        await sendCommentNotification(commentaire.type as 'remarque' | 'question', user?.name);
       }
     } catch (error) {
       console.error('Erreur lors de l\'ajout du commentaire:', error);
@@ -174,15 +176,10 @@ export function useCommentaires() {
       if (error) throw error;
       setReponses(prev => [data as SupabaseReponse, ...prev]);
 
-      // Ajout de la notification
+      // Notification géré via hook
       if (isNotificationPermitted('new_response')) {
-        addNotification({
-          type: 'new_response',
-          title: `Nouvelle réponse de ${user?.name || 'un utilisateur'}`,
-          message: reponse.content.substring(0, 50) + '...',
-          actionUrl: `/commentaires#${reponse.commentaire_id}`,
-          userId: user?.id
-        });
+        // TODO: Implémenter la notification
+        console.log('Notification de réponse à implémenter');
       }
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la réponse:', error);

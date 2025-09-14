@@ -16,8 +16,6 @@ export const RichTextViewer: React.FC<RichTextViewerProps> = ({ html, className 
     ALLOWED_URI_REGEXP: /^https?:\/\/|^mailto:|^tel:/i,
     ADD_ATTR: ['style', 'color'],
     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onmouseout'],
-    // Permettre tous les styles sécurisés
-    ALLOWED_TAGS_REGEX: /^(p|div|br|strong|em|u|ul|ol|li|h[1-6]|a|span|font)$/i,
   });
 
   // Post-traitement moins restrictif pour préserver plus de styles

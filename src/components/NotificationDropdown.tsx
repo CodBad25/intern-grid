@@ -18,26 +18,22 @@ import { fr } from 'date-fns/locale';
 
 export function NotificationDropdown() {
   const { 
-    filteredNotifications, 
+    notifications, 
     unreadCount, 
-    filters, 
     markAsRead, 
     markAllAsRead, 
     deleteNotification, 
-    clearAllNotifications,
-    setFilters,
-    refreshNotifications,
-    navigateToContent
+    fetchNotifications
   } = useNotifications();
   const { user } = useAuth();
   const [showFilters, setShowFilters] = useState(false);
 
   if (!user) return null;
 
-  // Trier et limiter les notifications filtrées
-  const displayNotifications = filteredNotifications
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 20); // Afficher plus de notifications avec les filtres
+  // Trier et limiter les notifications
+  const displayNotifications = (notifications || [])
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 20);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -76,20 +72,11 @@ export function NotificationDropdown() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={refreshNotifications}
+              onClick={fetchNotifications}
               className="h-8 w-8 p-0"
               title="Actualiser"
             >
               <RefreshCw className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="h-8 w-8 p-0"
-              title="Filtres"
-            >
-              <Filter className="h-3 w-3" />
             </Button>
             {unreadCount > 0 && (
               <Button
@@ -105,72 +92,21 @@ export function NotificationDropdown() {
           </div>
         </div>
 
-        {showFilters && (
-          <div className="p-3 border-b bg-muted/50 space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs font-medium mb-1 block">Type</label>
-                <Select value={filters.type} onValueChange={(value: any) => setFilters({...filters, type: value})}>
-                  <SelectTrigger className="h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="new_comment">Commentaires</SelectItem>
-                    <SelectItem value="new_response">Réponses</SelectItem>
-                    <SelectItem value="new_document">Documents</SelectItem>
-                    <SelectItem value="new_event">Événements</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs font-medium mb-1 block">Statut</label>
-                <Select value={filters.status} onValueChange={(value: any) => setFilters({...filters, status: value})}>
-                  <SelectTrigger className="h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
-                    <SelectItem value="unread">Non lus</SelectItem>
-                    <SelectItem value="read">Lus</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-medium mb-1 block">Période</label>
-              <Select value={filters.timeRange} onValueChange={(value: any) => setFilters({...filters, timeRange: value})}>
-                <SelectTrigger className="h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes</SelectItem>
-                  <SelectItem value="today">Aujourd'hui</SelectItem>
-                  <SelectItem value="week">Cette semaine</SelectItem>
-                  <SelectItem value="month">Ce mois</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
 
         {displayNotifications.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
-            {filters.type === 'all' && filters.status === 'all' && filters.timeRange === 'all' 
-              ? 'Aucune notification' 
-              : 'Aucune notification correspondant aux filtres'}
+            Aucune notification
           </div>
         ) : (
           <div className="max-h-96 overflow-y-auto">
             <div className="px-3 py-2 text-xs text-muted-foreground border-b">
-              {displayNotifications.length} notification{displayNotifications.length > 1 ? 's' : ''} 
-              {filters.type === 'all' && filters.status === 'all' && filters.timeRange === 'all' ? '' : ' (filtrées)'}
+              {displayNotifications.length} notification{displayNotifications.length > 1 ? 's' : ''}
             </div>
             {displayNotifications.map((notification) => (
               <DropdownMenuItem
                 key={notification.id}
                 className={`p-3 cursor-pointer ${!notification.read ? 'bg-accent/50' : ''}`}
-                onClick={() => navigateToContent(notification)}
+                onClick={() => markAsRead(notification.id)}
               >
                 <div className="flex items-start gap-3 w-full">
                   <span className="text-lg flex-shrink-0">
@@ -194,10 +130,10 @@ export function NotificationDropdown() {
                       </Button>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">
-                      {notification.message}
+                      {notification.content}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(notification.createdAt), {
+                      {formatDistanceToNow(new Date(notification.created_at), {
                         addSuffix: true,
                         locale: fr,
                       })}
@@ -216,7 +152,9 @@ export function NotificationDropdown() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={clearAllNotifications}
+              onClick={() => {
+                displayNotifications.forEach(n => deleteNotification(n.id));
+              }}
               className="p-3 text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />

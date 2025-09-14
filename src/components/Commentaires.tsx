@@ -27,7 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
 import { useCommentaires } from '../hooks/useCommentaires';
-import { Commentaire as SupabaseCommentaire, Reponse as SupabaseReponse, Reaction as SupabaseReaction } from '../types';
+import { SupabaseCommentaire, SupabaseReponse } from '../hooks/useCommentaires';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationSender } from '../hooks/useNotificationSender';
 import { ReactionSystem, ReactionType } from './ReactionSystem';
@@ -58,6 +58,21 @@ const defaultReponseFormData: ReponseFormData = {
   shared_with_peers: true,
 };
 
+type ExtendedCommentaire = SupabaseCommentaire & {
+  tuteurName: string;
+  tuteurId: string;
+  createdAt: string;
+  reponses: ExtendedReponse[];
+};
+
+type ExtendedReponse = SupabaseReponse & {
+  tuteurName: string;
+  tuteurId: string;
+  createdAt: string;
+  commentaireId: string;
+  sharedWithPeers: boolean;
+};
+
 export function Commentaires() {
   const { user } = useAuth();
   const { 
@@ -79,10 +94,10 @@ export function Commentaires() {
   
   const [isCommentFormOpen, setIsCommentFormOpen] = useState(false);
   const [commentFormData, setCommentFormData] = useState<CommentaireFormData>(defaultCommentaireFormData);
-  const [editingComment, setEditingComment] = useState<SupabaseCommentaire | null>(null);
+  const [editingComment, setEditingComment] = useState<ExtendedCommentaire | null>(null);
   const [editingContent, setEditingContent] = useState('');
   
-  const [editingReponse, setEditingReponse] = useState<SupabaseReponse | null>(null);
+  const [editingReponse, setEditingReponse] = useState<ExtendedReponse | null>(null);
   const [editingReponseContent, setEditingReponseContent] = useState('');
   
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -101,10 +116,23 @@ export function Commentaires() {
   }, [fetchCommentaires, fetchReponses]);
 
   const commentairesWithReponses = useMemo(() => {
+    if (!commentaires || !Array.isArray(commentaires)) {
+      return [];
+    }
     return commentaires.map(commentaire => ({
       ...commentaire,
-      reponses: reponses.filter(reponse => reponse.commentaireId === commentaire.id)
-    }));
+      tuteurName: commentaire.profiles?.display_name || 'Utilisateur inconnu',
+      tuteurId: commentaire.tuteur_id,
+      createdAt: commentaire.created_at,
+      reponses: reponses.filter(reponse => reponse.commentaire_id === commentaire.id).map(reponse => ({
+        ...reponse,
+        tuteurName: reponse.profiles?.display_name || 'Utilisateur inconnu',
+        tuteurId: reponse.tuteur_id,
+        createdAt: reponse.created_at,
+        commentaireId: reponse.commentaire_id,
+        sharedWithPeers: reponse.shared_with_peers,
+      }))
+    })) as ExtendedCommentaire[];
   }, [commentaires, reponses]);
 
   const filteredCommentaires = useMemo(() => {
@@ -141,7 +169,7 @@ export function Commentaires() {
 
     setIsLoading(true);
     try {
-      addCommentaire({ ...commentFormData, tuteurId: user.id, tuteurName: user.name });
+      addCommentaire({ ...commentFormData, tuteur_id: user.id });
       sendCommentNotification(commentFormData.type);
       toast.success(commentFormData.type === 'question' ? 'Question ajoutée' : 'Remarque ajoutée');
       setIsCommentFormOpen(false);
@@ -161,10 +189,8 @@ export function Commentaires() {
     try {
       addReponse({
         ...replyFormData,
-        commentaireId: replyingTo,
-        tuteurId: user.id,
-        tuteurName: user.name,
-        sharedWithPeers: replyFormData.shared_with_peers,
+        commentaire_id: replyingTo,
+        tuteur_id: user.id,
       });
       sendResponseNotification(replyingTo, replyFormData.shared_with_peers);
       toast.success('Réponse ajoutée');
@@ -176,7 +202,7 @@ export function Commentaires() {
     }
   };
 
-  const handleEditComment = (commentaire: SupabaseCommentaire) => {
+  const handleEditComment = (commentaire: ExtendedCommentaire) => {
     setEditingComment(commentaire);
     setEditingContent(commentaire.content);
   };
@@ -185,7 +211,7 @@ export function Commentaires() {
     if (!editingComment) return;
 
     try {
-      updateCommentaire(editingComment.id, editingContent);
+      updateCommentaire(editingComment.id, { content: editingContent });
       toast.success('Commentaire modifié');
       setEditingComment(null);
       setEditingContent('');
@@ -194,7 +220,7 @@ export function Commentaires() {
     }
   };
 
-  const handleEditReponse = (reponse: SupabaseReponse) => {
+  const handleEditReponse = (reponse: ExtendedReponse) => {
     setEditingReponse(reponse);
     setEditingReponseContent(reponse.content);
   };
@@ -212,7 +238,7 @@ export function Commentaires() {
     }
   };
 
-  const handleDeleteComment = (commentaire: SupabaseCommentaire) => {
+  const handleDeleteComment = (commentaire: ExtendedCommentaire) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')) {
       try {
         deleteCommentaire(commentaire.id);
@@ -223,7 +249,7 @@ export function Commentaires() {
     }
   };
 
-  const handleDeleteReponse = (reponse: SupabaseReponse) => {
+  const handleDeleteReponse = (reponse: ExtendedReponse) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette réponse ?')) {
       try {
         deleteReponse(reponse.id);
@@ -234,11 +260,11 @@ export function Commentaires() {
     }
   };
 
-  const canModifyComment = (commentaire: SupabaseCommentaire) => {
+  const canModifyComment = (commentaire: ExtendedCommentaire) => {
     return user?.role === 'admin' || commentaire.tuteurId === user?.id;
   };
 
-  const canModifyReponse = (reponse: SupabaseReponse) => {
+  const canModifyReponse = (reponse: ExtendedReponse) => {
     return user?.role === 'admin' || reponse.tuteurId === user?.id;
   };
 
@@ -262,11 +288,11 @@ export function Commentaires() {
     removeReaction(reactionId);
   };
 
-  const getCommentIcon = (type: SupabaseCommentaire['type']) => {
+  const getCommentIcon = (type: string) => {
     return type === 'question' ? AlertCircle : MessageCircle;
   };
 
-  const getCommentColor = (type: SupabaseCommentaire['type']) => {
+  const getCommentColor = (type: string) => {
     return type === 'question' 
       ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
       : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
@@ -462,15 +488,12 @@ export function Commentaires() {
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent>
                           <DropdownMenuItem onClick={() => handleEditComment(commentaire)}>
                             <Edit2 className="w-4 h-4 mr-2" />
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteComment(commentaire)}
-                            className="text-destructive"
-                          >
+                          <DropdownMenuItem onClick={() => handleDeleteComment(commentaire)}>
                             <Trash2 className="w-4 h-4 mr-2" />
                             Supprimer
                           </DropdownMenuItem>
@@ -489,6 +512,7 @@ export function Commentaires() {
                       />
                       <div className="flex gap-2">
                         <Button size="sm" onClick={handleSaveEdit}>
+                          <Check className="w-4 h-4 mr-2" />
                           Sauvegarder
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => setEditingComment(null)}>
@@ -497,157 +521,159 @@ export function Commentaires() {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <p className="text-foreground">{commentaire.content}</p>
-                      <ReactionSystem
-                        targetId={commentaire.id}
-                        reactions={getReactionsForTarget(commentaire.id, 'comment').map(r => ({
-                          id: r.id,
-                          type: r.type as ReactionType,
-                          userId: r.userId,
-                          userName: r.userName || 'Utilisateur inconnu',
-                          createdAt: r.createdAt
-                        }))}
-                        onAddReaction={(type) => handleAddReaction(commentaire.id, 'comment', type)}
-                        onRemoveReaction={handleRemoveReaction}
-                        disabled={!user}
-                      />
+                    <div className="mb-4">
+                      <p className="text-foreground whitespace-pre-wrap">{commentaire.content}</p>
                     </div>
                   )}
 
-                  {/* Responses */}
-                  {visibleReponses.length > 0 && (
-                    <div className="border-l-2 border-primary/20 pl-4 space-y-3">
-                       {visibleReponses.map((reponse) => {
-                         const isEditingReponse = editingReponse?.id === reponse.id;
-                         
-                         return (
-                           <div key={reponse.id} className="bg-muted/50 rounded-lg p-4">
-                             <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium">{reponse.tuteurName || 'Utilisateur inconnu'}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(parseISO(reponse.createdAt), 'dd/MM/yyyy à HH:mm', { locale: fr })}
-                                  </span>
-                                  {reponse.sharedWithPeers && (
-                                    <Badge variant="outline">
-                                      <Share2 className="w-3 h-3 mr-1" />
-                                      Partagé
-                                    </Badge>
-                                  )}
-                                </div>
-                               
-                               {canModifyReponse(reponse) && (
-                                 <DropdownMenu>
-                                   <DropdownMenuTrigger asChild>
-                                     <Button variant="ghost" size="sm">
-                                       <MoreHorizontal className="w-3 h-3" />
-                                     </Button>
-                                   </DropdownMenuTrigger>
-                                   <DropdownMenuContent align="end">
-                                     <DropdownMenuItem onClick={() => handleEditReponse(reponse)}>
-                                       <Edit2 className="w-3 h-3 mr-2" />
-                                       Modifier
-                                     </DropdownMenuItem>
-                                     <DropdownMenuItem 
-                                       onClick={() => handleDeleteReponse(reponse)}
-                                       className="text-destructive"
-                                     >
-                                       <Trash2 className="w-3 h-3 mr-2" />
-                                       Supprimer
-                                     </DropdownMenuItem>
-                                   </DropdownMenuContent>
-                                 </DropdownMenu>
-                               )}
-                             </div>
-                             
-                             {isEditingReponse ? (
-                                <div className="space-y-3">
-                                  <TextAreaWithVoice
-                                    value={editingReponseContent}
-                                    onValueChange={setEditingReponseContent}
-                                    rows={3}
-                                  />
-                                  <div className="flex gap-2">
-                                    <Button size="sm" onClick={handleSaveEditReponse}>
-                                      Sauvegarder
-                                    </Button>
-                                    <Button size="sm" variant="outline" onClick={() => setEditingReponse(null)}>
-                                      Annuler
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                 <div className="space-y-2">
-                                   <p className="text-sm">{reponse.content}</p>
-                                   <ReactionSystem
-                                     targetId={reponse.id}
-                                     reactions={getReactionsForTarget(reponse.id, 'response').map(r => ({
-                                       id: r.id,
-                                       type: r.type as ReactionType,
-                                       userId: r.userId,
-                                       userName: r.userName || 'Utilisateur inconnu',
-                                       createdAt: r.createdAt
-                                     }))}
-                                     onAddReaction={(type) => handleAddReaction(reponse.id, 'response', type)}
-                                     onRemoveReaction={handleRemoveReaction}
-                                     size="sm"
-                                     disabled={!user}
-                                   />
-                                 </div>
-                              )}
-                           </div>
-                         );
-                       })}
-                    </div>
-                  )}
+                  {/* Reaction System */}
+                  <div className="mb-4">
+                    <ReactionSystem
+                      targetId={commentaire.id}
+                      reactions={getReactionsForTarget(commentaire.id, 'comment')}
+                      onAddReaction={(type) => handleAddReaction(commentaire.id, 'comment', type)}
+                      onRemoveReaction={handleRemoveReaction}
+                    />
+                  </div>
 
-                  {/* Reply Form */}
-                  {replyingTo === commentaire.id ? (
-                    <form onSubmit={handleReplySubmit} className="mt-4 border-l-2 border-primary/20 pl-4 space-y-3">
-                      <TextAreaWithVoice
-                        value={replyFormData.content}
-                        onValueChange={(value) => setReplyFormData(prev => ({ ...prev, content: value }))}
-                        placeholder="Votre réponse..."
-                        rows={3}
-                        required
-                      />
-                      
-                      {user?.role === 'tuteur' && (
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id="sharedWithPeers"
-                            checked={replyFormData.shared_with_peers}
-                            onCheckedChange={(checked) => setReplyFormData(prev => ({ ...prev, shared_with_peers: checked }))}
-                          />
-                          <Label htmlFor="sharedWithPeers" className="text-sm">
-                            Partager avec les autres tuteurs
-                          </Label>
-                        </div>
-                      )}
-                      
-                      <div className="flex gap-2">
-                        <Button type="submit" size="sm" disabled={isLoading}>
-                          {isLoading && <LoadingSpinner size="sm" className="mr-2" />}
-                          Répondre
-                        </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={resetReplyForm}>
-                          Annuler
-                        </Button>
-                      </div>
-                    </form>
-                  ) : (
-                    canReply() && (
+                  {/* Reply Button */}
+                  {canReply() && !isEditing && (
+                    <div className="mb-4">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setReplyingTo(commentaire.id)}
-                        className="mt-4"
+                        onClick={() => {
+                          setReplyingTo(commentaire.id);
+                          resetReplyForm();
+                        }}
                       >
                         <Reply className="w-4 h-4 mr-2" />
                         Répondre
                       </Button>
-                    )
+                    </div>
+                  )}
+
+                  {/* Reply Form */}
+                  {replyingTo === commentaire.id && (
+                    <Card className="mt-4 bg-muted/30">
+                      <CardContent className="p-4">
+                        <form onSubmit={handleReplySubmit} className="space-y-4">
+                          <div>
+                            <Label htmlFor="replyContent">Votre réponse</Label>
+                            <TextAreaWithVoice
+                              id="replyContent"
+                              value={replyFormData.content}
+                              onValueChange={(value) => setReplyFormData(prev => ({ ...prev, content: value }))}
+                              placeholder="Votre réponse..."
+                              rows={3}
+                              required
+                            />
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              id="shareWithPeers"
+                              checked={replyFormData.shared_with_peers}
+                              onCheckedChange={(checked) => setReplyFormData(prev => ({ ...prev, shared_with_peers: checked }))}
+                            />
+                            <Label htmlFor="shareWithPeers" className="text-sm">
+                              Partager avec les autres tuteurs
+                            </Label>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button type="submit" size="sm" disabled={isLoading}>
+                              {isLoading && <LoadingSpinner size="sm" className="mr-2" />}
+                              Publier la réponse
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={resetReplyForm}>
+                              Annuler
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Responses */}
+                  {visibleReponses.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      <h4 className="font-medium text-sm text-foreground">
+                        Réponses ({visibleReponses.length})
+                      </h4>
+                      {visibleReponses.map((reponse) => {
+                        const isEditingReponse = editingReponse?.id === reponse.id;
+                        return (
+                          <Card key={reponse.id} className="bg-muted/30">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <div className="text-xs text-muted-foreground">
+                                      Par {reponse.tuteurName || 'Utilisateur inconnu'} • {format(parseISO(reponse.createdAt), 'dd/MM/yyyy à HH:mm', { locale: fr })}
+                                      {reponse.sharedWithPeers && (
+                                        <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-200">
+                                          <Share2 className="w-3 h-3 mr-1" />
+                                          Partagée
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {isEditingReponse ? (
+                                    <div className="space-y-2">
+                                      <TextAreaWithVoice
+                                        value={editingReponseContent}
+                                        onValueChange={setEditingReponseContent}
+                                        rows={2}
+                                      />
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={handleSaveEditReponse}>
+                                          <Check className="w-4 h-4 mr-2" />
+                                          Sauvegarder
+                                        </Button>
+                                        <Button size="sm" variant="outline" onClick={() => setEditingReponse(null)}>
+                                          Annuler
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-foreground whitespace-pre-wrap mb-2">{reponse.content}</p>
+                                  )}
+
+                                  <ReactionSystem
+                                    targetId={reponse.id}
+                                    reactions={getReactionsForTarget(reponse.id, 'response')}
+                                    onAddReaction={(type) => handleAddReaction(reponse.id, 'response', type)}
+                                    onRemoveReaction={handleRemoveReaction}
+                                  />
+                                </div>
+
+                                {canModifyReponse(reponse) && !isEditingReponse && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                      <DropdownMenuItem onClick={() => handleEditReponse(reponse)}>
+                                        <Edit2 className="w-4 h-4 mr-2" />
+                                        Modifier
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleDeleteReponse(reponse)}>
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        Supprimer
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -655,16 +681,13 @@ export function Commentaires() {
           })
         ) : (
           <EmptyState
-            title="Aucun commentaire trouvé"
-            description={searchTerm || typeFilter !== 'all' || statusFilter !== 'all'
-              ? "Aucun commentaire ne correspond à vos critères de recherche" 
-              : "Commencez la discussion en ajoutant votre premier commentaire"
-            }
             icon={MessageSquare}
-            action={!searchTerm && typeFilter === 'all' && statusFilter === 'all' ? {
-              label: "Premier commentaire",
-              onClick: () => { resetCommentForm(); setIsCommentFormOpen(true); }
-            } : undefined}
+            title="Aucun commentaire"
+            description="Commencez par ajouter une question ou une remarque"
+            action={{
+              label: "Nouveau commentaire",
+              onClick: () => setIsCommentFormOpen(true)
+            }}
           />
         )}
       </div>

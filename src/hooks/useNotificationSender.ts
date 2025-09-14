@@ -48,13 +48,18 @@ export function useNotificationSender() {
     // Notifier tous les autres utilisateurs
     users
       .filter(u => u.user_id !== user.id)
-      .forEach(targetUser => {
-        addNotification({
-          userId: targetUser.user_id,
-          type: 'comment',
-          title: `Nouvelle ${commentType}`,
-          message: `${senderName} a publié une nouvelle ${commentType}`,
-        });
+      .forEach(async (targetUser) => {
+        try {
+          await supabase.from('notifications').insert({
+            target_user_id: targetUser.user_id,
+            created_by: user.id,
+            type: 'new_comment',
+            title: `Nouvelle ${commentType}`,
+            content: `${senderName} a publié une nouvelle ${commentType}`,
+          });
+        } catch (error) {
+          console.error('Erreur notification:', error);
+        }
       });
   };
 
@@ -65,8 +70,8 @@ export function useNotificationSender() {
     const users = await getAllUsers();
 
     // Notifier le stagiaire et l'autre tuteur selon les règles de partage
-    users.forEach(targetUser => {
-      if (targetUser.user_id === user.id) return; // Ne pas se notifier soi-même
+    for (const targetUser of users) {
+      if (targetUser.user_id === user.id) continue; // Ne pas se notifier soi-même
 
       let shouldNotify = false;
 
@@ -79,14 +84,19 @@ export function useNotificationSender() {
       }
 
       if (shouldNotify) {
-        addNotification({
-          userId: targetUser.user_id,
-          type: 'response',
-          title: 'Nouvelle réponse',
-          message: `${senderName} a répondu à une question`,
-        });
+        try {
+          await supabase.from('notifications').insert({
+            target_user_id: targetUser.user_id,
+            created_by: user.id,
+            type: 'new_response',
+            title: 'Nouvelle réponse',
+            content: `${senderName} a répondu à une question`,
+          });
+        } catch (error) {
+          console.error('Erreur notification:', error);
+        }
       }
-    });
+    }
   };
 
   const sendDocumentNotification = async (authorName?: string) => {
@@ -98,13 +108,18 @@ export function useNotificationSender() {
     // Notifier tous les autres utilisateurs
     users
       .filter(u => u.user_id !== user.id)
-      .forEach(targetUser => {
-        addNotification({
-          userId: targetUser.user_id,
-          type: 'document',
-          title: 'Nouveau document',
-          message: `${senderName} a ajouté un nouveau document`,
-        });
+      .forEach(async (targetUser) => {
+        try {
+          await supabase.from('notifications').insert({
+            target_user_id: targetUser.user_id,
+            created_by: user.id,
+            type: 'new_document',
+            title: 'Nouveau document',
+            content: `${senderName} a ajouté un nouveau document`,
+          });
+        } catch (error) {
+          console.error('Erreur notification:', error);
+        }
       });
   };
 
@@ -117,13 +132,18 @@ export function useNotificationSender() {
     // Notifier tous les autres utilisateurs
     users
       .filter(u => u.user_id !== user.id)
-      .forEach(targetUser => {
-        addNotification({
-          userId: targetUser.user_id,
-          type: 'event',
-          title: 'Nouvel événement',
-          message: `${senderName} a planifié un nouvel événement`,
-        });
+      .forEach(async (targetUser) => {
+        try {
+          await supabase.from('notifications').insert({
+            target_user_id: targetUser.user_id,
+            created_by: user.id,
+            type: 'new_event',
+            title: 'Nouvel événement',
+            content: `${senderName} a planifié un nouvel événement`,
+          });
+        } catch (error) {
+          console.error('Erreur notification:', error);
+        }
       });
   };
 
