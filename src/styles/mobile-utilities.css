@@ -1,0 +1,186 @@
+/* Utilities mobiles supplémentaires */
+
+@layer utilities {
+  /* Touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Mobile spacing */
+  .mobile-padding {
+    @apply px-4 py-3 md:px-6 md:py-4;
+  }
+
+  .mobile-margin {
+    @apply mx-4 my-3 md:mx-6 md:my-4;
+  }
+
+  /* Mobile typography */
+  .mobile-text-sm {
+    @apply text-sm md:text-base;
+  }
+
+  .mobile-text-base {
+    @apply text-base md:text-lg;
+  }
+
+  .mobile-text-lg {
+    @apply text-lg md:text-xl;
+  }
+
+  /* Mobile containers */
+  .mobile-container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Safe areas for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mobile scrolling */
+  .mobile-scroll {
+    @apply overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border;
+  }
+
+  /* Mobile cards */
+  .mobile-card {
+    @apply rounded-lg shadow-sm md:rounded-xl md:shadow-soft;
+  }
+
+  /* Mobile buttons */
+  .mobile-button {
+    @apply min-h-[44px] px-4 py-2 text-base md:min-h-[40px] md:px-3 md:py-2 md:text-sm;
+  }
+
+  /* Mobile form elements */
+  .mobile-input {
+    @apply min-h-[44px] text-base md:min-h-[40px] md:text-sm;
+  }
+
+  /* Mobile grid layouts */
+  .mobile-grid {
+    @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .mobile-grid-2 {
+    @apply grid gap-4 grid-cols-1 md:grid-cols-2;
+  }
+
+  /* Mobile flexbox */
+  .mobile-flex-col {
+    @apply flex flex-col md:flex-row;
+  }
+
+  .mobile-flex-row {
+    @apply flex flex-row md:flex-col;
+  }
+
+  /* Mobile visibility */
+  .mobile-hidden {
+    @apply hidden md:block;
+  }
+
+  .mobile-only {
+    @apply block md:hidden;
+  }
+
+  /* Mobile animations */
+  .mobile-transition {
+    @apply transition-all duration-200 ease-out;
+  }
+}
+
+/* Media queries supplémentaires */
+@media (max-width: 375px) {
+  .xs\:text-xs { font-size: 0.75rem; }
+  .xs\:px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+  .xs\:py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+  .xs\:block { display: block; }
+  .xs\:hidden { display: none; }
+}
+
+/* PWA viewport fixes */
+@supports (height: 100dvh) {
+  .mobile-full-height {
+    height: 100dvh;
+  }
+}
+
+@supports not (height: 100dvh) {
+  .mobile-full-height {
+    height: 100vh;
+  }
+}
+
+/* Smooth scrolling sur mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Correctifs globaux anti-overflow sur mobile */
+:root,
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#root,
+.app,
+.mobile-full-width {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Empêcher les éléments media de dépasser l'écran */
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Gérer les contenus larges (code, tableaux) sans casser la mise en page */
+pre,
+code,
+table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Désactiver le scroll horizontal, préserver le scroll vertical naturel */
+@media (max-width: 768px) {
+  body {
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
+  }
+}
+
+/* Utilitaire si besoin d'appliquer explicitement sur un conteneur */
+.no-horizontal-scroll {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}

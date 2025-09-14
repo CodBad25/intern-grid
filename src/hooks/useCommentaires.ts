@@ -1,0 +1,245 @@
+
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { useNotificationPreferences } from '@/context/NotificationPreferencesContext';
+
+export type SupabaseCommentaire = Tables<'commentaires'> & {
+  profiles?: Tables<'profiles'>;
+};
+
+export type SupabaseReponse = Tables<'reponses'> & {
+  profiles?: Tables<'profiles'>;
+};
+
+type NewCommentaireInput = {
+  type: 'remarque' | 'question' | string;
+  content: string;
+};
+
+type UpdateCommentaireInput = {
+  content: string;
+};
+
+type NewReponseInput = {
+  commentaire_id: string;
+  content: string;
+  shared_with_peers: boolean;
+};
+
+type UpdateReponseInput = {
+  content: string;
+};
+
+export function useCommentaires() {
+  const { user } = useAuth();
+  const { addNotification } = useNotifications();
+  const { isNotificationPermitted } = useNotificationPreferences();
+  const [commentaires, setCommentaires] = useState<SupabaseCommentaire[]>([]);
+  const [reponses, setReponses] = useState<SupabaseReponse[]>([]);
+
+  const fetchCommentaires = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('commentaires')
+        .select(`
+          *,
+          profiles:tuteur_id (
+            id,
+            display_name,
+            role,
+            color,
+            avatar_url,
+            created_at,
+            updated_at,
+            user_id
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const commentairesWithProfiles = (data || []).map(commentaire => {
+        const profile = commentaire.profiles;
+        return {
+          ...commentaire,
+          profiles: profile ? {
+            ...profile,
+            display_name: profile.display_name || 
+                         `Utilisateur ${commentaire.tuteur_id.slice(-4)}` ||
+                         'Utilisateur inconnu'
+          } : null
+        };
+      });
+      
+      setCommentaires(commentairesWithProfiles);
+    } catch (error) {
+      console.error('Erreur lors du chargement des commentaires:', error);
+    }
+  };
+
+  const fetchReponses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('reponses')
+        .select(`
+          *,
+          profiles:tuteur_id (
+            id,
+            display_name,
+            role,
+            color,
+            avatar_url,
+            created_at,
+            updated_at,
+            user_id
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReponses(data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des réponses:', error);
+    }
+  };
+
+  const addCommentaire = async (commentaire: NewCommentaireInput) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('commentaires')
+        .insert({ ...commentaire, tuteur_id: user.id })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCommentaires(prev => [data as SupabaseCommentaire, ...prev]);
+      
+      // Ajout de la notification
+      if (isNotificationPermitted('new_comment')) {
+        addNotification({
+          type: 'new_comment',
+          title: `Nouveau commentaire de ${user?.name || 'un utilisateur'}`,
+          message: commentaire.content.substring(0, 50) + '...',
+          actionUrl: `/commentaires#${data.id}`,
+          userId: user?.id
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du commentaire:', error);
+      throw error;
+    }
+  };
+
+  const updateCommentaire = async (id: string, updates: UpdateCommentaireInput) => {
+    try {
+      const { data, error } = await supabase
+        .from('commentaires')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCommentaires(prev =>
+        prev.map(c => (c.id === id ? { ...c, ...data } : c))
+      );
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du commentaire:', error);
+      throw error;
+    }
+  };
+
+  const deleteCommentaire = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('commentaires')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setCommentaires(prev => prev.filter(c => c.id !== id));
+    } catch (error) {
+      console.error('Erreur lors de la suppression du commentaire:', error);
+      throw error;
+    }
+  };
+
+  const addReponse = async (reponse: NewReponseInput) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('reponses')
+        .insert({ ...reponse, tuteur_id: user.id })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setReponses(prev => [data as SupabaseReponse, ...prev]);
+
+      // Ajout de la notification
+      if (isNotificationPermitted('new_response')) {
+        addNotification({
+          type: 'new_response',
+          title: `Nouvelle réponse de ${user?.name || 'un utilisateur'}`,
+          message: reponse.content.substring(0, 50) + '...',
+          actionUrl: `/commentaires#${reponse.commentaire_id}`,
+          userId: user?.id
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la réponse:', error);
+      throw error;
+    }
+  };
+
+  const updateReponse = async (id: string, updates: UpdateReponseInput) => {
+    try {
+      const { data, error } = await supabase
+        .from('reponses')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      setReponses(prev =>
+        prev.map(r => (r.id === id ? { ...r, ...data } : r))
+      );
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la réponse:', error);
+      throw error;
+    }
+  };
+
+  const deleteReponse = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('reponses')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setReponses(prev => prev.filter(r => r.id !== id));
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la réponse:', error);
+      throw error;
+    }
+  };
+
+  return {
+    commentaires,
+    reponses,
+    fetchCommentaires,
+    fetchReponses,
+    addCommentaire,
+    updateCommentaire,
+    deleteCommentaire,
+    addReponse,
+    updateReponse,
+    deleteReponse
+  };
+}
