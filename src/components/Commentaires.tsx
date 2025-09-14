@@ -108,6 +108,9 @@ export function Commentaires() {
   }, [commentaires, reponses]);
 
   const filteredCommentaires = useMemo(() => {
+    if (!commentairesWithReponses || !Array.isArray(commentairesWithReponses)) {
+      return [];
+    }
     return commentairesWithReponses.filter(commentaire => {
       const content = (commentaire.content || '').toLowerCase();
       const displayName = (commentaire.tuteurName || '').toLowerCase();
