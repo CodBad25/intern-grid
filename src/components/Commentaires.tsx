@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
-import { useData } from '../context/DataContext';
+import { useCommentaires } from '../hooks/useCommentaires';
 import { Commentaire as SupabaseCommentaire, Reponse as SupabaseReponse, Reaction as SupabaseReaction } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useNotificationSender } from '../hooks/useNotificationSender';
@@ -72,7 +72,9 @@ export function Commentaires() {
     addReaction,
     removeReaction,
     getReactionsForTarget,
-  } = useData();
+    fetchCommentaires,
+    fetchReponses
+  } = useCommentaires();
   const { sendCommentNotification, sendResponseNotification } = useNotificationSender();
   
   const [isCommentFormOpen, setIsCommentFormOpen] = useState(false);
@@ -91,6 +93,12 @@ export function Commentaires() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Charger les données au montage du composant
+  useEffect(() => {
+    fetchCommentaires();
+    fetchReponses();
+  }, [fetchCommentaires, fetchReponses]);
 
   const commentairesWithReponses = useMemo(() => {
     return commentaires.map(commentaire => ({

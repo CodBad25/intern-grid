@@ -224,6 +224,23 @@ export function useCommentaires() {
     }
   };
 
+  // Fonctions de réactions (placeholder - à implémenter si nécessaire)
+  const addReaction = async (reaction: any) => {
+    console.log('addReaction called:', reaction);
+    // TODO: Implémenter avec Supabase
+  };
+
+  const removeReaction = async (id: string) => {
+    console.log('removeReaction called:', id);
+    // TODO: Implémenter avec Supabase
+  };
+
+  const getReactionsForTarget = (targetId: string, targetType: 'comment' | 'response') => {
+    console.log('getReactionsForTarget called:', targetId, targetType);
+    // TODO: Implémenter avec Supabase
+    return [];
+  };
+
   return {
     commentaires,
     reponses,
@@ -234,6 +251,9 @@ export function useCommentaires() {
     deleteCommentaire,
     addReponse,
     updateReponse,
-    deleteReponse
+    deleteReponse,
+    addReaction,
+    removeReaction,
+    getReactionsForTarget
   };
 }
