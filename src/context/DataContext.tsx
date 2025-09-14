@@ -10,6 +10,7 @@ interface DataContextType {
   reponses: Reponse[];
   evenements: Evenement[];
   reactions: Reaction[];
+  isLoading: boolean;
   
   addSeance: (seance: Omit<Seance, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateSeance: (id: string, seance: Partial<Seance>) => void;
@@ -61,6 +62,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [reponses, setReponses] = useState<Reponse[]>([]);
   const [evenements, setEvenements] = useState<Evenement[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Sync data with Supabase on startup
   useEffect(() => {
@@ -129,6 +131,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
 
       console.log('Data sync complete.');
+      setIsLoading(false);
     };
 
     const loadDataFromStorage = () => {
@@ -151,6 +154,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       loadData(STORAGE_KEYS.reponses, setReponses);
       loadData(STORAGE_KEYS.evenements, setEvenements);
       loadData(STORAGE_KEYS.reactions, setReactions);
+      setIsLoading(false);
     };
 
     syncData();
@@ -384,6 +388,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       reponses,
       evenements,
       reactions,
+      isLoading,
       addSeance,
       updateSeance,
       deleteSeance,

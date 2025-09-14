@@ -38,13 +38,15 @@ function AppContent() {
     );
   }
 
-  if (!user && location.pathname !== '/' && location.pathname !== '/auth' && location.pathname !== '/features') {
+  // Si on n'est pas connecté ET qu'on est sur une route protégée
+  const protectedRoutes = ['/dashboard', '/seances', '/documents', '/commentaires', '/planning', '/notification-settings', '/user-settings'];
+  if (!user && protectedRoutes.includes(location.pathname)) {
     return <Navigate to="/auth" replace />;
   }
 
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/dashboard" element={user ? <Layout><Dashboard /></Layout> : <Navigate to="/auth" replace />} />
       <Route path="/seances" element={user ? <Layout><Seances /></Layout> : <Navigate to="/auth" replace />} />

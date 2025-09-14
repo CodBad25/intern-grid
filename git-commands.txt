@@ -1,0 +1,11 @@
+## Commandes à exécuter après création du repo GitHub :
+
+# Remplace "TON-USERNAME" et "TON-REPO" par tes vraies valeurs
+git remote add origin https://github.com/TON-USERNAME/TON-REPO.git
+git branch -M main
+git push -u origin main
+
+## Exemple :
+# git remote add origin https://github.com/badri/suivi-stagiaires-v2.git
+# git branch -M main  
+# git push -u origin main

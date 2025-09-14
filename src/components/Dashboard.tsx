@@ -7,12 +7,21 @@ import { QuickActions } from './QuickActions';
 import { StatsGrid } from './analytics/StatsGrid';
 import { AnalyticsSection } from './analytics/AnalyticsSection';
 import { RecentContent } from './analytics/RecentContent';
+import { LoadingSpinner } from './LoadingSpinner';
 
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { seances, documents, commentaires, reponses } = useData();
+  const { seances, documents, commentaires, reponses, isLoading } = useData();
   const analytics = useAnalytics();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   const recentSeances = seances.slice(0, 3);
   const recentDocuments = documents.slice(0, 3);

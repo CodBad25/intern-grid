@@ -29,7 +29,7 @@ export function Auth() {
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 
@@ -57,7 +57,7 @@ export function Auth() {
       }
 
       toast.success('Connexion réussie !');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Erreur lors de la connexion');
@@ -266,7 +266,7 @@ export function Auth() {
                           }
 
                           toast.success('Connexion réussie !');
-                          navigate('/');
+                          navigate('/dashboard');
                         } catch (error) {
                           console.error('Login error:', error);
                           toast.error('Erreur lors de la connexion');
