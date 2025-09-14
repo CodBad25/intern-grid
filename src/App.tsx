@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { Toaster as HotToast } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
-import { NotificationProvider } from './context/NotificationContext';
 import { NotificationPreferencesProvider } from './context/NotificationPreferencesContext';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
@@ -68,9 +67,7 @@ function AppProviders({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <DataProvider>
             <NotificationPreferencesProvider>
-              <NotificationProvider>
-                {children}
-              </NotificationProvider>
+              {children}
             </NotificationPreferencesProvider>
           </DataProvider>
         </AuthProvider>

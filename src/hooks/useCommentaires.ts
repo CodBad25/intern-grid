@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/context/AuthContext';
-import { useNotifications } from '@/context/NotificationContext';
+import { useNotificationSender } from './useNotificationSender';
 import { useNotificationPreferences } from '@/context/NotificationPreferencesContext';
 
 export type SupabaseCommentaire = Tables<'commentaires'> & {
@@ -35,7 +35,7 @@ type UpdateReponseInput = {
 
 export function useCommentaires() {
   const { user } = useAuth();
-  const { addNotification } = useNotifications();
+  const { sendCommentNotification } = useNotificationSender();
   const { isNotificationPermitted } = useNotificationPreferences();
   const [commentaires, setCommentaires] = useState<SupabaseCommentaire[]>([]);
   const [reponses, setReponses] = useState<SupabaseReponse[]>([]);
@@ -118,15 +118,9 @@ export function useCommentaires() {
       if (error) throw error;
       setCommentaires(prev => [data as SupabaseCommentaire, ...prev]);
       
-      // Ajout de la notification
+      // Envoi de la notification Supabase
       if (isNotificationPermitted('new_comment')) {
-        addNotification({
-          type: 'new_comment',
-          title: `Nouveau commentaire de ${user?.name || 'un utilisateur'}`,
-          message: commentaire.content.substring(0, 50) + '...',
-          actionUrl: `/commentaires#${data.id}`,
-          userId: user?.id
-        });
+        await sendCommentNotification(commentaire.type, user?.name);
       }
     } catch (error) {
       console.error('Erreur lors de l\'ajout du commentaire:', error);

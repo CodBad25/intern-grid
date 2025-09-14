@@ -1,5 +1,5 @@
 
-import { useNotifications } from '@/context/NotificationContext';
+// NotificationContext supprimé - utilisation de Supabase uniquement
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -11,7 +11,6 @@ interface UserProfile {
 }
 
 export function useNotificationSender() {
-  const { addNotification } = useNotifications();
   const { user } = useAuth();
 
   const getAllUsers = async (): Promise<UserProfile[]> => {
