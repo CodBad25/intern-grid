@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Seance, Document, Commentaire, Reponse, Evenement, Reaction } from '../types';
 import { supabase } from '../integrations/supabase/client';
+import { useSupabaseRealtime } from '../hooks/useSupabaseRealtime';
 
 interface DataContextType {
   seances: Seance[];
@@ -362,7 +363,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const getStats = () => {
     const totalHeures = seances.reduce((sum, seance) => sum + seance.duree, 0);
     const nombreSeances = seances.length;
-    
+
     // Questions without responses
     const questionsIds = new Set(
       commentaires
@@ -370,7 +371,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         .map(c => c.id)
     );
     const reponsesIds = new Set(reponses.map(r => r.commentaireId));
-    const questionsEnAttente = questionsIds.size - 
+    const questionsEnAttente = questionsIds.size -
       Array.from(questionsIds).filter(id => reponsesIds.has(id)).length;
 
     return {
@@ -379,6 +380,169 @@ export function DataProvider({ children }: { children: ReactNode }) {
       questionsEnAttente,
     };
   };
+
+  // ✅ Reload functions for real-time updates
+  const reloadSeances = useCallback(async () => {
+    console.log('Reloading seances...');
+    const { data, error } = await supabase.from('seances').select('*').order('created_at', { ascending: false }).limit(50);
+    if (error) {
+      console.error('Error reloading seances:', error);
+      return;
+    }
+    const transformed = data.map((s: any) => ({
+      ...s,
+      tuteurId: s.tuteur_id,
+      createdAt: s.created_at,
+      updatedAt: s.updated_at,
+      horaireMode: s.horaire_mode,
+      classeVisitee: s.classe_visitee,
+      nomEnseignant: s.nom_enseignant,
+    }));
+    setSeances(transformed);
+    saveToStorage(STORAGE_KEYS.seances, transformed);
+  }, []);
+
+  const reloadDocuments = useCallback(async () => {
+    console.log('Reloading documents...');
+    const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error reloading documents:', error);
+      return;
+    }
+    const transformed = data.map((d: any) => ({
+      ...d,
+      tuteurId: d.tuteur_id,
+      createdAt: d.created_at,
+    }));
+    setDocuments(transformed);
+    saveToStorage(STORAGE_KEYS.documents, transformed);
+  }, []);
+
+  const reloadCommentaires = useCallback(async () => {
+    console.log('Reloading commentaires...');
+    const { data, error } = await supabase.from('commentaires').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error reloading commentaires:', error);
+      return;
+    }
+    const transformed = data.map((c: any) => ({
+      ...c,
+      tuteurId: c.tuteur_id,
+      createdAt: c.created_at,
+    }));
+    setCommentaires(transformed);
+    saveToStorage(STORAGE_KEYS.commentaires, transformed);
+  }, []);
+
+  const reloadReponses = useCallback(async () => {
+    console.log('Reloading reponses...');
+    const { data, error } = await supabase.from('reponses').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error reloading reponses:', error);
+      return;
+    }
+    const transformed = data.map((r: any) => ({
+      ...r,
+      commentaireId: r.commentaire_id,
+      tuteurId: r.tuteur_id,
+      sharedWithPeers: r.shared_with_peers,
+      createdAt: r.created_at,
+    }));
+    setReponses(transformed);
+    saveToStorage(STORAGE_KEYS.reponses, transformed);
+  }, []);
+
+  const reloadReactions = useCallback(async () => {
+    console.log('Reloading reactions...');
+    const { data, error } = await supabase.from('reactions').select('*').order('created_at', { ascending: false }).limit(100);
+    if (error) {
+      console.error('Error reloading reactions:', error);
+      return;
+    }
+    const transformed = data.map((r: any) => ({
+      ...r,
+      userId: r.user_id,
+      targetId: r.target_id,
+      targetType: r.target_type,
+      createdAt: r.created_at,
+    }));
+    setReactions(transformed);
+    saveToStorage(STORAGE_KEYS.reactions, transformed);
+  }, []);
+
+  // ✅ Utilisation du hook de temps réel
+  useSupabaseRealtime({
+    onCommentaireChange: reloadCommentaires,
+    onReponseChange: reloadReponses,
+    onDocumentChange: reloadDocuments,
+    onSeanceChange: reloadSeances,
+    onReactionChange: reloadReactions,
+  });
+
+  // ✅ Polling de secours pour garantir la synchronisation des données
+  // Rafraîchit les données toutes les 30 secondes en cas d'échec du realtime
+  useEffect(() => {
+    const pollingInterval = setInterval(() => {
+      console.log('Polling data refresh...');
+      reloadSeances();
+      reloadDocuments();
+      reloadCommentaires();
+      reloadReponses();
+      reloadReactions();
+    }, 30000); // 30 secondes
+
+    return () => clearInterval(pollingInterval);
+  }, [reloadSeances, reloadDocuments, reloadCommentaires, reloadReponses, reloadReactions]);
+
+  // ✅ Synchronisation cross-tab via localStorage
+  // Permet de synchroniser les données entre plusieurs onglets/fenêtres
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith('stagiaires_')) {
+        console.log('Storage changed in another tab, reloading data...');
+        // Recharger les données depuis localStorage
+        const loadData = (key: string, setter: (data: any[]) => void) => {
+          try {
+            const saved = localStorage.getItem(key);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              setter(Array.isArray(parsed) ? parsed : []);
+            }
+          } catch (error) {
+            console.error(`Error loading ${key}:`, error);
+          }
+        };
+
+        if (e.key === STORAGE_KEYS.seances) loadData(STORAGE_KEYS.seances, setSeances);
+        if (e.key === STORAGE_KEYS.documents) loadData(STORAGE_KEYS.documents, setDocuments);
+        if (e.key === STORAGE_KEYS.commentaires) loadData(STORAGE_KEYS.commentaires, setCommentaires);
+        if (e.key === STORAGE_KEYS.reponses) loadData(STORAGE_KEYS.reponses, setReponses);
+        if (e.key === STORAGE_KEYS.evenements) loadData(STORAGE_KEYS.evenements, setEvenements);
+        if (e.key === STORAGE_KEYS.reactions) loadData(STORAGE_KEYS.reactions, setReactions);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // ✅ Rafraîchir les données lors de la reprise de focus
+  // Garantit que les données sont à jour quand l'utilisateur revient sur l'onglet
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && navigator.onLine) {
+        console.log('Page regained focus, refreshing data...');
+        reloadSeances();
+        reloadDocuments();
+        reloadCommentaires();
+        reloadReponses();
+        reloadReactions();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [reloadSeances, reloadDocuments, reloadCommentaires, reloadReponses, reloadReactions]);
 
   return (
     <DataContext.Provider value={{
