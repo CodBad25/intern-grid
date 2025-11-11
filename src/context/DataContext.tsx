@@ -384,7 +384,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
   // ✅ Reload functions for real-time updates
   const reloadSeances = useCallback(async () => {
     console.log('Reloading seances...');
-    const { data, error } = await supabase.from('seances').select('*').order('created_at', { ascending: false }).limit(50);
+    const { data, error } = await supabase
+      .from('seances')
+      .select('*, profiles:tuteur_id(display_name)')
+      .order('created_at', { ascending: false })
+      .limit(50);
     if (error) {
       console.error('Error reloading seances:', error);
       return;
@@ -392,6 +396,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const transformed = data.map((s: any) => ({
       ...s,
       tuteurId: s.tuteur_id,
+      tuteurName: s.profiles?.display_name,
       createdAt: s.created_at,
       updatedAt: s.updated_at,
       horaireMode: s.horaire_mode,
@@ -404,7 +409,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const reloadDocuments = useCallback(async () => {
     console.log('Reloading documents...');
-    const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('documents')
+      .select('*, profiles:tuteur_id(display_name)')
+      .order('created_at', { ascending: false });
     if (error) {
       console.error('Error reloading documents:', error);
       return;
@@ -412,6 +420,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const transformed = data.map((d: any) => ({
       ...d,
       tuteurId: d.tuteur_id,
+      tuteurName: d.profiles?.display_name,
       createdAt: d.created_at,
     }));
     setDocuments(transformed);
@@ -420,7 +429,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const reloadCommentaires = useCallback(async () => {
     console.log('Reloading commentaires...');
-    const { data, error } = await supabase.from('commentaires').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('commentaires')
+      .select('*, profiles:tuteur_id(display_name)')
+      .order('created_at', { ascending: false });
     if (error) {
       console.error('Error reloading commentaires:', error);
       return;
@@ -428,6 +440,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const transformed = data.map((c: any) => ({
       ...c,
       tuteurId: c.tuteur_id,
+      tuteurName: c.profiles?.display_name,
       createdAt: c.created_at,
     }));
     setCommentaires(transformed);
@@ -436,7 +449,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const reloadReponses = useCallback(async () => {
     console.log('Reloading reponses...');
-    const { data, error } = await supabase.from('reponses').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('reponses')
+      .select('*, profiles:tuteur_id(display_name)')
+      .order('created_at', { ascending: false });
     if (error) {
       console.error('Error reloading reponses:', error);
       return;
@@ -445,6 +461,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       ...r,
       commentaireId: r.commentaire_id,
       tuteurId: r.tuteur_id,
+      tuteurName: r.profiles?.display_name,
       sharedWithPeers: r.shared_with_peers,
       createdAt: r.created_at,
     }));
@@ -454,7 +471,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const reloadReactions = useCallback(async () => {
     console.log('Reloading reactions...');
-    const { data, error } = await supabase.from('reactions').select('*').order('created_at', { ascending: false }).limit(100);
+    const { data, error } = await supabase
+      .from('reactions')
+      .select('*, profiles:user_id(display_name)')
+      .order('created_at', { ascending: false })
+      .limit(100);
     if (error) {
       console.error('Error reloading reactions:', error);
       return;
@@ -462,6 +483,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const transformed = data.map((r: any) => ({
       ...r,
       userId: r.user_id,
+      userName: r.profiles?.display_name,
       targetId: r.target_id,
       targetType: r.target_type,
       createdAt: r.created_at,
@@ -478,6 +500,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     onSeanceChange: reloadSeances,
     onReactionChange: reloadReactions,
   });
+
+  // ✅ Force reload initial après 2 secondes pour garantir les données fraîches
+  // Résout les problèmes de cache sur certains navigateurs (Edge, Safari)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (navigator.onLine) {
+        console.log('Force refreshing data after initial load...');
+        reloadSeances();
+        reloadDocuments();
+        reloadCommentaires();
+        reloadReponses();
+        reloadReactions();
+      }
+    }, 2000); // 2 secondes après le montage
+
+    return () => clearTimeout(timer);
+  }, []); // Exécute une seule fois au montage
 
   // ✅ Polling de secours pour garantir la synchronisation des données
   // Rafraîchit les données toutes les 30 secondes en cas d'échec du realtime
