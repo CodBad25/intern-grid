@@ -17,8 +17,8 @@ interface DataContextType {
   updateSeance: (id: string, seance: Partial<Seance>) => void;
   deleteSeance: (id: string) => void;
   
-  addDocument: (document: Omit<Document, 'id' | 'createdAt'>, sendNotification?: boolean) => void;
-  deleteDocument: (id: string) => void;
+  addDocument: (document: Omit<Document, 'id' | 'createdAt'>, sendNotification?: boolean) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
   
   addCommentaire: (commentaire: Omit<Commentaire, 'id' | 'createdAt'>, sendNotification?: boolean) => void;
   updateCommentaire: (id: string, content: string) => void;
@@ -200,21 +200,73 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   // Documents
-  const addDocument = (documentData: Omit<Document, 'id' | 'createdAt'>, sendNotification: boolean = true) => {
-    const newDocument: Document = {
-      ...documentData,
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [...documents, newDocument];
-    setDocuments(updated);
-    saveToStorage(STORAGE_KEYS.documents, updated);
+  const addDocument = async (documentData: Omit<Document, 'id' | 'createdAt'>, sendNotification: boolean = true) => {
+    try {
+      // ✅ Insérer dans la base de données Supabase
+      const { data, error } = await supabase
+        .from('documents')
+        .insert({
+          titre: documentData.titre,
+          type: documentData.type,
+          url: documentData.url,
+          description: documentData.description,
+          tuteur_id: documentData.tuteurId, // ✅ Conversion camelCase → snake_case
+          shared_with_peers: documentData.sharedWithPeers ?? true, // ✅ Champ manquant ajouté
+        })
+        .select('*, profiles:tuteur_id(display_name)')
+        .single();
+
+      if (error) {
+        console.error('Erreur insertion document:', error);
+        throw error;
+      }
+
+      // ✅ Mettre à jour l'état local avec les données de la BDD
+      const newDocument: Document = {
+        id: data.id,
+        titre: data.titre,
+        type: data.type,
+        url: data.url,
+        description: data.description,
+        tuteurId: data.tuteur_id,
+        tuteurName: data.profiles?.display_name || '',
+        sharedWithPeers: data.shared_with_peers,
+        createdAt: data.created_at,
+      };
+
+      const updated = [newDocument, ...documents];
+      setDocuments(updated);
+      saveToStorage(STORAGE_KEYS.documents, updated);
+
+      // ✅ Recharger les documents pour garantir la cohérence
+      await reloadDocuments();
+    } catch (error) {
+      console.error('Erreur ajout document:', error);
+      throw error; // ✅ Propager l'erreur pour que le composant puisse la gérer
+    }
   };
 
-  const deleteDocument = (id: string) => {
-    const updated = documents.filter(d => d.id !== id);
-    setDocuments(updated);
-    saveToStorage(STORAGE_KEYS.documents, updated);
+  const deleteDocument = async (id: string) => {
+    try {
+      // ✅ Supprimer de la base de données
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erreur suppression document:', error);
+        throw error;
+      }
+
+      // ✅ Mettre à jour l'état local
+      const updated = documents.filter(d => d.id !== id);
+      setDocuments(updated);
+      saveToStorage(STORAGE_KEYS.documents, updated);
+    } catch (error) {
+      console.error('Erreur suppression document:', error);
+      throw error;
+    }
   };
 
   // Commentaires

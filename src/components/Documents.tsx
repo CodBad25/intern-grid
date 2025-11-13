@@ -214,13 +214,14 @@ export function Documents() {
         description: formData.description,
         tuteurId: user.id,
         tuteurName: user.name,
+        sharedWithPeers: formData.sharedWithPeers, // ✅ Ajout du champ manquant
       };
 
       console.log('About to call addDocument with:', documentData);
-      addDocument(documentData);
+      await addDocument(documentData); // ✅ Ajout du await
       console.log('addDocument call completed');
-      
-      toast.success('Document ajouté avec succès');
+
+      toast.success('Document ajouté et partagé avec succès'); // ✅ Message amélioré
       setIsFormOpen(false);
       resetForm();
       console.log('=== FORM SUBMISSION COMPLETED ===');

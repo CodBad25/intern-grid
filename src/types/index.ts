@@ -33,6 +33,7 @@ export interface Document {
   description: string;
   tuteurId: string;
   tuteurName: string;
+  sharedWithPeers?: boolean; // ✅ Ajout du champ manquant
   createdAt: string;
 }
 
