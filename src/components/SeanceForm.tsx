@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Eye, BookOpen, GraduationCap, UserCheck, MoreHorizontal } from 'lucide-react';
 import { useLiens } from '@/hooks/useLiens';
+import { ObjectivesSelector } from './ObjectivesSelector';
 
 const SEANCE_TYPE_ICONS = {
   visite: Eye,
@@ -202,6 +203,11 @@ export function SeanceForm({
             rows={6}
           />
         </div>
+
+        {/* Section pour les objectifs observés pendant la visite */}
+        {formData.type === 'visite' && (
+          <ObjectivesSelector sessionId={editingSeance?.id} />
+        )}
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>

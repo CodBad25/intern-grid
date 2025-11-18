@@ -1,15 +1,16 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  FileText, 
-  MessageSquare, 
+import {
+  LayoutDashboard,
+  Calendar,
+  FileText,
+  MessageSquare,
   CalendarDays,
   LogOut,
   Settings,
-  User
+  User,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Commentaires', href: '/commentaires', icon: MessageSquare },
   { name: 'Planning', href: '/planning', icon: CalendarDays },
+  { name: 'Objectifs', href: '/items', icon: Target },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
