@@ -19,6 +19,8 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          shared_with_peers: boolean | null
+          stagiaire_id: string | null
           tuteur_id: string
           type: string
         }
@@ -26,6 +28,8 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          shared_with_peers?: boolean | null
+          stagiaire_id?: string | null
           tuteur_id: string
           type: string
         }
@@ -33,10 +37,19 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          shared_with_peers?: boolean | null
+          stagiaire_id?: string | null
           tuteur_id?: string
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "commentaires_stagiaire_id_fkey"
+            columns: ["stagiaire_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "commentaires_tuteur_id_fkey"
             columns: ["tuteur_id"]
@@ -275,6 +288,115 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      objectives: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: number
+          is_completed: boolean | null
+          is_validated: boolean | null
+          isCompleted: boolean
+          isValidated: boolean
+          seance_id: string | null
+          session_id: number | null
+          title: string
+          type: string
+          updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+          validation_notes: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: number
+          is_completed?: boolean | null
+          is_validated?: boolean | null
+          isCompleted?: boolean
+          isValidated?: boolean
+          seance_id?: string | null
+          session_id?: number | null
+          title: string
+          type?: string
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_notes?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: number
+          is_completed?: boolean | null
+          is_validated?: boolean | null
+          isCompleted?: boolean
+          isValidated?: boolean
+          seance_id?: string | null
+          session_id?: number | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          validation_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objectives_seance_id_fkey"
+            columns: ["seance_id"]
+            isOneToOne: false
+            referencedRelation: "seances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      observations: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          objective_id: number
+          observed_at: string | null
+          observer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          objective_id: number
+          observed_at?: string | null
+          observer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          objective_id?: number
+          observed_at?: string | null
+          observer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observations_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       poll_options: {
         Row: {
@@ -540,6 +662,7 @@ export type Database = {
       }
       seances: {
         Row: {
+          classe_visitee: string | null
           created_at: string
           creneau: string | null
           date: string
@@ -547,6 +670,7 @@ export type Database = {
           heure: string | null
           horaire_mode: string | null
           id: string
+          nom_enseignant: string | null
           notes: string
           shared_with_peers: boolean
           tuteur_id: string
@@ -554,6 +678,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          classe_visitee?: string | null
           created_at?: string
           creneau?: string | null
           date: string
@@ -561,6 +686,7 @@ export type Database = {
           heure?: string | null
           horaire_mode?: string | null
           id?: string
+          nom_enseignant?: string | null
           notes?: string
           shared_with_peers?: boolean
           tuteur_id: string
@@ -568,6 +694,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          classe_visitee?: string | null
           created_at?: string
           creneau?: string | null
           date?: string
@@ -575,6 +702,7 @@ export type Database = {
           heure?: string | null
           horaire_mode?: string | null
           id?: string
+          nom_enseignant?: string | null
           notes?: string
           shared_with_peers?: boolean
           tuteur_id?: string
@@ -623,30 +751,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      clear_test_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      create_demo_users: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      clear_test_data: { Args: never; Returns: undefined }
+      create_demo_users: { Args: never; Returns: undefined }
       delete_reaction_admin: {
         Args: { _reaction_id: string }
         Returns: undefined
       }
-      ensure_profile_exists: {
-        Args: { _user_id: string }
-        Returns: undefined
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      seed_demo_content: {
-        Args: { _user_id: string }
-        Returns: undefined
-      }
+      ensure_profile_exists: { Args: { _user_id: string }; Returns: undefined }
+      get_current_user_role: { Args: never; Returns: string }
+      seed_demo_content: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
