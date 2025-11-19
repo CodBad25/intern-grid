@@ -204,8 +204,8 @@ export function SeanceForm({
           />
         </div>
 
-        {/* Section pour les objectifs observés pendant la visite */}
-        {formData.type === 'visite' && (
+        {/* Section pour les objectifs observés pendant la séance */}
+        {(formData.type === 'visite' || formData.type === 'suivi') && (
           <ObjectivesSelector sessionId={editingSeance?.id} />
         )}
 
