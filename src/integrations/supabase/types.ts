@@ -301,8 +301,7 @@ export type Database = {
           is_validated: boolean | null
           isCompleted: boolean
           isValidated: boolean
-          seance_id: string | null
-          session_id: number | null
+          session_id: string | null
           title: string
           type: string
           updated_at: string | null
@@ -321,8 +320,7 @@ export type Database = {
           is_validated?: boolean | null
           isCompleted?: boolean
           isValidated?: boolean
-          seance_id?: string | null
-          session_id?: number | null
+          session_id?: string | null
           title: string
           type?: string
           updated_at?: string | null
@@ -341,8 +339,7 @@ export type Database = {
           is_validated?: boolean | null
           isCompleted?: boolean
           isValidated?: boolean
-          seance_id?: string | null
-          session_id?: number | null
+          session_id?: string | null
           title?: string
           type?: string
           updated_at?: string | null
@@ -353,7 +350,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "objectives_seance_id_fkey"
-            columns: ["seance_id"]
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "seances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objectives_session_id_fkey"
+            columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "seances"
             referencedColumns: ["id"]
@@ -368,6 +372,7 @@ export type Database = {
           objective_id: number
           observed_at: string | null
           observer_id: string
+          session_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -377,6 +382,7 @@ export type Database = {
           objective_id: number
           observed_at?: string | null
           observer_id: string
+          session_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -386,6 +392,7 @@ export type Database = {
           objective_id?: number
           observed_at?: string | null
           observer_id?: string
+          session_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -394,6 +401,13 @@ export type Database = {
             columns: ["objective_id"]
             isOneToOne: false
             referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "observations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "seances"
             referencedColumns: ["id"]
           },
         ]
