@@ -11,11 +11,12 @@ type NewSeanceInput = {
   date: string;
   duree: number;
   type: string;
-  horaire_mode: 'ordinaire' | 'creneau';
+  horaire_mode?: 'ordinaire' | 'creneau';
   heure?: string | null;
   creneau?: string | null;
   notes: string;
-  shared_with_peers: boolean;
+  shared_with_peers?: boolean;
+  classe_visitee?: string | null;
 };
 
 type UpdateSeanceInput = Partial<NewSeanceInput>;

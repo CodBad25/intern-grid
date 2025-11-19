@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { EmptyState } from './EmptyState';
 import { LoadingSpinner } from './LoadingSpinner';
+import { PlanningCalendar } from './PlanningCalendar';
 
 const EVENEMENT_TYPES = [
   { value: 'reunion', label: 'Réunion' },
@@ -297,6 +298,9 @@ export function Planning() {
         )}
       </div>
 
+      {/* Calendrier des visites et suivis */}
+      <PlanningCalendar />
+
       {/* Quick Overview */}
       {upcomingEvenements.length > 0 && (
         <Card className="bg-gradient-primary/5 border-primary/20">
@@ -478,14 +482,10 @@ export function Planning() {
           <EmptyState
             title="Aucun événement trouvé"
             description={searchTerm || typeFilter !== 'all' || dateFilter !== 'all'
-              ? "Aucun événement ne correspond à vos critères de recherche" 
-              : "Commencez par planifier votre premier événement"
+              ? "Aucun événement ne correspond à vos critères de recherche"
+              : "Utilisez le bouton 'Nouvel événement' en haut de la page"
             }
             icon={Calendar}
-            action={(user?.role === 'tuteur' || user?.role === 'admin') && !searchTerm && typeFilter === 'all' && dateFilter === 'all' ? {
-              label: "Créer un événement",
-              onClick: () => { resetForm(); setIsFormOpen(true); }
-            } : undefined}
           />
         )}
       </div>

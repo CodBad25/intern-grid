@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useItems } from '@/hooks/useItems';
 import { useAuth } from '@/context/AuthContext';
-import { Trash2, Edit2, Plus, Eye, CheckCircle, Search, Filter } from 'lucide-react';
+import { Trash2, Edit2, Plus, Eye, CheckCircle, Search, Filter, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ObjectiveObservations } from './ObjectiveObservations';
@@ -28,6 +28,7 @@ export function ItemsPage() {
   } = useItems();
 
   // États pour le formulaire de création
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemDescription, setNewItemDescription] = useState('');
   const [newItemType, setNewItemType] = useState<'tache' | 'objectif'>('objectif');
@@ -87,6 +88,7 @@ export function ItemsPage() {
       setNewItemTitle('');
       setNewItemDescription('');
       setNewItemType('objectif');
+      setShowCreateForm(false);
     } catch (error) {
       console.error('Erreur lors de la création de l\'élément:', error);
     } finally {
@@ -212,9 +214,12 @@ export function ItemsPage() {
         </p>
       </div>
 
-      {/* Statistiques */}
+      {/* Statistiques cliquables */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${filterType === 'all' && filterStatus === 'all' ? 'ring-2 ring-primary' : ''}`}
+          onClick={() => { setFilterType('all'); setFilterStatus('all'); }}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
           </CardHeader>
@@ -222,7 +227,10 @@ export function ItemsPage() {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${filterType === 'tache' && filterStatus === 'all' ? 'ring-2 ring-blue-500' : ''}`}
+          onClick={() => { setFilterType('tache'); setFilterStatus('all'); }}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tâches</CardTitle>
           </CardHeader>
@@ -230,7 +238,10 @@ export function ItemsPage() {
             <div className="text-2xl font-bold text-blue-600">{stats.taches}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${filterType === 'objectif' && filterStatus === 'all' ? 'ring-2 ring-purple-500' : ''}`}
+          onClick={() => { setFilterType('objectif'); setFilterStatus('all'); }}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Objectifs</CardTitle>
           </CardHeader>
@@ -238,7 +249,10 @@ export function ItemsPage() {
             <div className="text-2xl font-bold text-purple-600">{stats.objectifs}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${filterStatus === 'pending' ? 'ring-2 ring-gray-500' : ''}`}
+          onClick={() => { setFilterType('all'); setFilterStatus('pending'); }}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">En attente</CardTitle>
           </CardHeader>
@@ -246,7 +260,10 @@ export function ItemsPage() {
             <div className="text-2xl font-bold text-gray-600">{stats.pending}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${filterStatus === 'completed' ? 'ring-2 ring-orange-500' : ''}`}
+          onClick={() => { setFilterType('all'); setFilterStatus('completed'); }}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Réalisés</CardTitle>
           </CardHeader>
@@ -254,7 +271,10 @@ export function ItemsPage() {
             <div className="text-2xl font-bold text-orange-600">{stats.completed}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className={`cursor-pointer transition-all hover:shadow-md ${filterStatus === 'validated' ? 'ring-2 ring-green-500' : ''}`}
+          onClick={() => { setFilterType('all'); setFilterStatus('validated'); }}
+        >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Validés</CardTitle>
           </CardHeader>
@@ -266,56 +286,70 @@ export function ItemsPage() {
 
       {/* Formulaire de création (visible uniquement pour les tuteurs/admins) */}
       {isTutor && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Créer un nouvel élément
-            </CardTitle>
-            <CardDescription>
-              Ajoutez une tâche ou un objectif pour le stagiaire
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium mb-2">Type</label>
-                <Select value={newItemType} onValueChange={(value: 'tache' | 'objectif') => setNewItemType(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tache">Tâche</SelectItem>
-                    <SelectItem value="objectif">Objectif</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-[2]">
-                <label className="block text-sm font-medium mb-2">Titre *</label>
-                <Input
-                  value={newItemTitle}
-                  onChange={(e) => setNewItemTitle(e.target.value)}
-                  placeholder="Ex: Mettre à jour la base de données"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Description (optionnel)</label>
-              <Textarea
-                value={newItemDescription}
-                onChange={(e) => setNewItemDescription(e.target.value)}
-                placeholder="Détails supplémentaires..."
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={handleCreateItem} disabled={isCreating}>
-                <Plus className="w-4 h-4 mr-2" />
-                Créer
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mb-6">
+          {!showCreateForm ? (
+            <Button onClick={() => setShowCreateForm(true)} className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Nouvel élément
+            </Button>
+          ) : (
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Plus className="w-5 h-5" />
+                    Nouvel élément
+                  </CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="w-32">
+                    <label className="block text-sm font-medium mb-1">Type</label>
+                    <Select value={newItemType} onValueChange={(value: 'tache' | 'objectif') => setNewItemType(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tache">Tâche</SelectItem>
+                        <SelectItem value="objectif">Objectif</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium mb-1">Titre *</label>
+                    <Input
+                      value={newItemTitle}
+                      onChange={(e) => setNewItemTitle(e.target.value)}
+                      placeholder="Ex: Mettre à jour la base de données"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description (optionnel)</label>
+                  <Textarea
+                    value={newItemDescription}
+                    onChange={(e) => setNewItemDescription(e.target.value)}
+                    placeholder="Détails supplémentaires..."
+                    rows={2}
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowCreateForm(false)}>
+                    Annuler
+                  </Button>
+                  <Button onClick={handleCreateItem} disabled={isCreating}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Créer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Filtres et recherche */}

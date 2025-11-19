@@ -81,6 +81,8 @@ export const CRENEAUX_MATIN = ['M1', 'M2', 'M3', 'M4'] as const;
 export const CRENEAUX_SOIR = ['S1', 'S2', 'S3', 'S4'] as const;
 export const ALL_CRENEAUX = [...CRENEAUX_MATIN, ...CRENEAUX_SOIR] as const;
 
+export const CLASSES = ['6B', '4B'] as const;
+
 export const SEANCE_TYPES = [
   { value: 'visite', label: 'Visite' },
   { value: 'formation', label: 'Formation' },

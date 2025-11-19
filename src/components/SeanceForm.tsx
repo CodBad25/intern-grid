@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,12 +6,13 @@ import { RichTextEditor } from '@/components/RichTextEditor';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Seance } from '../types';
-import { SEANCE_TYPES, ALL_CRENEAUX } from '../types';
+import { SEANCE_TYPES, ALL_CRENEAUX, CLASSES } from '../types';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './LoadingSpinner';
-import { Eye, BookOpen, GraduationCap, UserCheck, MoreHorizontal } from 'lucide-react';
+import { Eye, BookOpen, GraduationCap, UserCheck, MoreHorizontal, ChevronDown, ChevronRight, Target, ListTodo } from 'lucide-react';
 import { useLiens } from '@/hooks/useLiens';
 import { ObjectivesSelector } from './ObjectivesSelector';
+import { TaskCreator } from './TaskCreator';
 
 const SEANCE_TYPE_ICONS = {
   visite: Eye,
@@ -31,6 +32,7 @@ interface SeanceFormData {
   creneau?: typeof ALL_CRENEAUX[number] | '';
   notes: string;
   customType?: string;
+  classeVisitee?: typeof CLASSES[number] | '';
 }
 
 interface SeanceFormProps {
@@ -54,6 +56,8 @@ export function SeanceForm({
 }: SeanceFormProps) {
   const selectableSeanceTypes = SEANCE_TYPES.filter(t => t.value !== 'formation' && t.value !== 'evaluation');
   const { saveLiens } = useLiens();
+  const [showObjectives, setShowObjectives] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
 
   const handleLinksExtracted = (links: string[]) => {
     if (editingSeance && links.length > 0) {
@@ -63,7 +67,7 @@ export function SeanceForm({
 
   return (
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
+      <DialogHeader className="pb-2">
         <DialogTitle>
           {editingSeance ? 'Modifier la séance' : 'Nouvelle séance'}
         </DialogTitle>
@@ -71,8 +75,8 @@ export function SeanceForm({
           Renseignez les informations de la séance de suivi
         </DialogDescription>
       </DialogHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
+
+      <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label htmlFor="date">Date</Label>
@@ -100,23 +104,24 @@ export function SeanceForm({
 
         <div>
           <Label>Type de séance</Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+          <div className="grid grid-cols-4 gap-2 mt-1">
             {selectableSeanceTypes.map((type) => {
               const Icon = SEANCE_TYPE_ICONS[type.value as keyof typeof SEANCE_TYPE_ICONS];
               return (
                 <Button
                   key={type.value}
                   type="button"
+                  size="sm"
                   variant={formData.type === type.value ? 'default' : 'outline'}
-                  className="h-auto py-3 flex-col gap-1"
-                  onClick={() => setFormData(prev => ({ 
-                    ...prev, 
+                  className="h-auto py-2 flex-col gap-0.5"
+                  onClick={() => setFormData(prev => ({
+                    ...prev,
                     type: type.value as Seance['type'],
                     customType: type.value === 'autre' ? prev.customType : ''
                   }))}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-xs">{type.label}</span>
+                  <Icon className="w-3 h-3" />
+                  <span className="text-[10px]">{type.label}</span>
                 </Button>
               );
             })}
@@ -190,6 +195,31 @@ export function SeanceForm({
           </div>
         )}
 
+        {/* Sélection de la classe (pour visite/suivi) */}
+        {(formData.type === 'visite' || formData.type === 'suivi') && (
+          <div>
+            <Label>Classe visitée</Label>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              {CLASSES.map((classe) => (
+                <Button
+                  key={classe}
+                  type="button"
+                  variant={formData.classeVisitee === classe ? 'default' : 'outline'}
+                  className={cn(
+                    formData.classeVisitee === classe && (
+                      classe.startsWith('6') ? 'bg-green-500 hover:bg-green-600' :
+                      'bg-yellow-500 hover:bg-yellow-600'
+                    )
+                  )}
+                  onClick={() => setFormData(prev => ({ ...prev, classeVisitee: classe }))}
+                >
+                  {classe}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div>
           <Label htmlFor="notes">Notes et observations</Label>
           <RichTextEditor
@@ -200,13 +230,37 @@ export function SeanceForm({
             }}
             onLinksExtracted={handleLinksExtracted}
             placeholder="Décrivez le contenu de la séance, les points abordés..."
-            rows={6}
+            rows={3}
           />
         </div>
 
-        {/* Section pour les objectifs observés pendant la séance */}
+        {/* Sections collapsibles pour objectifs et tâches */}
         {(formData.type === 'visite' || formData.type === 'suivi') && (
-          <ObjectivesSelector sessionId={editingSeance?.id} />
+          <div className="space-y-2">
+            {/* Toggle Objectifs */}
+            <button
+              type="button"
+              onClick={() => setShowObjectives(!showObjectives)}
+              className="flex items-center gap-2 w-full p-2 text-sm font-medium text-left bg-muted/50 rounded hover:bg-muted transition-colors"
+            >
+              {showObjectives ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              <Target className="w-4 h-4 text-primary" />
+              Valider des objectifs
+            </button>
+            {showObjectives && <ObjectivesSelector sessionId={editingSeance?.id} />}
+
+            {/* Toggle Tâches */}
+            <button
+              type="button"
+              onClick={() => setShowTasks(!showTasks)}
+              className="flex items-center gap-2 w-full p-2 text-sm font-medium text-left bg-muted/50 rounded hover:bg-muted transition-colors"
+            >
+              {showTasks ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              <ListTodo className="w-4 h-4 text-primary" />
+              Assigner des tâches
+            </button>
+            {showTasks && <TaskCreator sessionId={editingSeance?.id} />}
+          </div>
         )}
 
         <DialogFooter>

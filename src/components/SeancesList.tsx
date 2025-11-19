@@ -12,6 +12,7 @@ import { fr } from 'date-fns/locale';
 import { EmptyState } from './EmptyState';
 import { TutorName } from '@/components/TutorName';
 import { SeanceReactionsAndResponses } from '@/components/SeanceReactionsAndResponses';
+import { SeanceTasks } from '@/components/SeanceTasks';
 import { useProfiles } from '@/hooks/useProfiles';
 import { Calendar, Clock, Edit2, Trash2, MoreHorizontal, Eye, BookOpen, GraduationCap, UserCheck } from 'lucide-react';
 
@@ -141,7 +142,10 @@ export function SeancesList({
                       </div>
                     </div>
                   </div>
-                  
+
+                  {/* Tâches assignées lors de cette séance */}
+                  <SeanceTasks sessionId={seance.id} />
+
                   <RichTextViewer html={seance.notes} className="mb-2" />
 
                   <div className="flex items-center justify-between mb-2">
