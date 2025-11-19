@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Filter, RefreshCw, Users, FileText, Calendar, MessageSquare, Clock, Shield, Settings, TrendingUp, UserCheck, Image, Palette } from 'lucide-react';
+import { Bell, Filter, RefreshCw, Users, FileText, Calendar, MessageSquare, Clock, Shield, Settings, TrendingUp, UserCheck, Image, Palette, Target, ListTodo } from 'lucide-react';
 
 export function Features() {
   return (
@@ -155,15 +155,41 @@ export function Features() {
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary" />
                   Planning Intégré
+                  <Badge variant="secondary">✨ Amélioré</Badge>
                 </CardTitle>
-                <CardDescription>Vue d'ensemble temporelle</CardDescription>
+                <CardDescription>Calendrier complet avec créneaux</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
-                  <li>• ✅ Calendrier des événements</li>
-                  <li>• ✅ Vue mensuelle et hebdomadaire</li>
-                  <li>• ✅ Intégration séances et événements</li>
-                  <li>• ✅ Export possible</li>
+                  <li>• ✅ Calendrier avec créneaux M1-M4, S1-S4</li>
+                  <li>• ✅ Vue semaine et mois</li>
+                  <li>• ✅ Création de séances directement depuis le calendrier</li>
+                  <li>• ✅ Sélection de classe (6B, 4B) dans le formulaire</li>
+                  <li>• ✅ Couleurs des tuteurs dans le calendrier</li>
+                  <li>• ✅ Navigation et filtrage par période</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Tâches & Objectifs */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Tâches & Objectifs
+                  <Badge variant="secondary">✨ Nouveau</Badge>
+                </CardTitle>
+                <CardDescription>Suivi des tâches et objectifs de stage</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li>• ✅ Création de tâches et objectifs</li>
+                  <li>• ✅ Statuts : en attente, réalisé, validé</li>
+                  <li>• ✅ Statistiques cliquables pour filtrage</li>
+                  <li>• ✅ Tâches liées aux séances de visite</li>
+                  <li>• ✅ Formulaire collapsible pour meilleure UX</li>
+                  <li>• ✅ Dates modifiables par les tuteurs</li>
+                  <li>• ✅ Observations sur les objectifs</li>
                 </ul>
               </CardContent>
             </Card>
@@ -345,6 +371,25 @@ export function Features() {
                 <ul className="space-y-2 text-sm">
                   <li>• ✅ Migration base de données complète</li>
                   <li>• ✅ Refactoring des gros composants</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-green-600">✅ Complété (v2.6)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li>• ✅ **Calendrier planning avec créneaux M1-S4**</li>
+                  <li>• ✅ Vues semaine et mois</li>
+                  <li>• ✅ Création de séances depuis le calendrier</li>
+                  <li>• ✅ Sélection de classe (6B, 4B) dans les formulaires</li>
+                  <li>• ✅ Tâches liées aux séances de visite</li>
+                  <li>• ✅ Statistiques cliquables pour filtrage</li>
+                  <li>• ✅ Formulaires collapsibles (objectifs, tâches, création)</li>
+                  <li>• ✅ Couleurs des tuteurs dans le calendrier</li>
+                  <li>• ✅ Amélioration de l'UX générale</li>
                 </ul>
               </CardContent>
             </Card>
