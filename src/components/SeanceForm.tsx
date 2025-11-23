@@ -34,6 +34,7 @@ interface SeanceFormData {
   customType?: string;
   customLabel?: string; // Label personnalisé pour visite/suivi
   classeVisitee?: typeof CLASSES[number] | '';
+  sharedWithPeers?: boolean; // Séance partagée entre tuteurs
 }
 
 interface SeanceFormProps {
@@ -234,6 +235,23 @@ export function SeanceForm({
             <p className="text-xs text-muted-foreground mt-1">
               Ajoutez un sous-type pour préciser la nature de la séance
             </p>
+          </div>
+        )}
+
+        {/* Séance partagée entre tuteurs (pour visite/suivi) */}
+        {(formData.type === 'visite' || formData.type === 'suivi') && (
+          <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-md">
+            <Switch
+              id="sharedWithPeers"
+              checked={formData.sharedWithPeers || false}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, sharedWithPeers: checked }))}
+            />
+            <Label htmlFor="sharedWithPeers" className="cursor-pointer flex-1">
+              <span className="font-medium">Séance partagée avec l'autre tuteur</span>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Les deux tuteurs pourront voir et modifier cette séance (ex: Tréunion)
+              </p>
+            </Label>
           </div>
         )}
 

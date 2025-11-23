@@ -63,13 +63,14 @@ const defaultFormData: SeanceFormData = {
   notes: '',
   customLabel: '',
   classeVisitee: '',
+  sharedWithPeers: false,
 };
 
 export function PlanningCalendar() {
   const { seances } = useData();
   const { user } = useAuth();
   const { addSeance, updateSeance, deleteSeance } = useSeances();
-  const { getProfile } = useProfiles();
+  const { getProfile, profiles } = useProfiles();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('semaine');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -106,13 +107,16 @@ export function PlanningCalendar() {
       notes: seance.notes || '',
       customLabel: seance.custom_label || '',
       classeVisitee: seance.classe_visitee || '',
+      sharedWithPeers: seance.shared_with_peers || false,
     });
     setIsFormOpen(true);
   };
 
   // Gérer le clic sur une séance
   const handleSeanceClick = (seance: Seance, e: React.MouseEvent) => {
-    const canEdit = isTutor && seance.tuteur_id === user?.id;
+    const isCreator = seance.tuteur_id === user?.id;
+    const isShared = seance.shared_with_peers || false;
+    const canEdit = isTutor && (isCreator || isShared);
     if (canEdit) {
       openEditForm(seance, e);
     } else {
@@ -158,6 +162,7 @@ export function PlanningCalendar() {
         notes: formData.notes,
         // custom_label: formData.customLabel || null, // Décommentez après avoir appliqué la migration SQL
         classe_visitee: formData.classeVisitee || null,
+        shared_with_peers: formData.sharedWithPeers || false,
       };
 
       if (editingSeance) {
@@ -177,47 +182,126 @@ export function PlanningCalendar() {
   const isTutor = user?.role === 'tuteur' || user?.role === 'admin';
 
   // Fonction pour obtenir le style avec la couleur du tuteur et nuance selon le type
-  const getTutorColorStyle = (tuteurId: string, type: string) => {
+  const getTutorColorStyle = (tuteurId: string, type: string, isShared?: boolean) => {
     const profile = getProfile(tuteurId);
     const color = profile?.color || '#6366f1';
 
-    // Nuances selon le type
-    let bgOpacity = '20';
+    // Extraire les valeurs HSL
+    const getHSL = (colorStr: string) => {
+      if (colorStr.startsWith('hsl')) {
+        const match = colorStr.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+        if (match) {
+          return {
+            h: parseInt(match[1]),
+            s: parseInt(match[2]),
+            l: parseInt(match[3])
+          };
+        }
+      }
+      // Couleur par défaut si pas HSL
+      return { h: 220, s: 90, l: 56 };
+    };
+
+    const hsl = getHSL(color);
+
+    // Nuances selon le type - variation de la luminosité et saturation
+    let lightness = hsl.l;
+    let saturation = hsl.s;
+    let bgOpacity = 0.25;
     let borderWidth = '2px';
     let borderStyle = 'solid';
 
     switch (type) {
       case 'visite':
-        bgOpacity = '30';
+        lightness = Math.min(hsl.l + 5, 70); // Ton moyen-clair
+        saturation = Math.min(hsl.s + 10, 85);
+        bgOpacity = 0.35;
         borderWidth = '3px';
         borderStyle = 'solid';
         break;
       case 'suivi':
-        bgOpacity = '15';
+        lightness = Math.min(hsl.l + 20, 85); // Ton très clair/pastel
+        saturation = Math.max(hsl.s - 15, 40);
+        bgOpacity = 0.3;
         borderWidth = '2px';
         borderStyle = 'dashed';
         break;
       case 'formation':
-        bgOpacity = '25';
+        lightness = Math.min(hsl.l + 10, 75); // Légèrement plus clair
+        saturation = hsl.s;
+        bgOpacity = 0.3;
         borderWidth = '2px';
         borderStyle = 'double';
         break;
       case 'evaluation':
-        bgOpacity = '35';
+        lightness = Math.min(hsl.l + 8, 72);
+        saturation = Math.min(hsl.s + 5, 80);
+        bgOpacity = 0.35;
         borderWidth = '3px';
         borderStyle = 'solid';
         break;
       case 'autre':
-        bgOpacity = '20';
+        lightness = Math.min(hsl.l + 15, 78);
+        saturation = Math.max(hsl.s - 10, 50);
+        bgOpacity = 0.28;
         borderWidth = '2px';
         borderStyle = 'dotted';
         break;
     }
 
+    const bgColor1 = `hsl(${hsl.h}, ${saturation}%, ${lightness}%, ${bgOpacity})`;
+    const borderColor = `hsl(${hsl.h}, ${saturation}%, ${Math.max(lightness - 20, 10)}%)`;
+
+    // Si c'est une séance partagée, créer un dégradé avec les couleurs des deux tuteurs
+    if (isShared && profiles) {
+      // Trouver l'autre tuteur (celui qui n'est pas le créateur)
+      const otherProfile = profiles.find(p => p.user_id !== tuteurId && p.role === 'tuteur');
+
+      if (otherProfile) {
+        const color2 = otherProfile.color || '#22c55e';
+        const hsl2 = getHSL(color2);
+
+        // Appliquer les mêmes nuances à la deuxième couleur
+        let lightness2 = hsl2.l;
+        let saturation2 = hsl2.s;
+
+        switch (type) {
+          case 'visite':
+            lightness2 = Math.min(hsl2.l + 5, 70);
+            saturation2 = Math.min(hsl2.s + 10, 85);
+            break;
+          case 'suivi':
+            lightness2 = Math.min(hsl2.l + 20, 85);
+            saturation2 = Math.max(hsl2.s - 15, 40);
+            break;
+          case 'formation':
+            lightness2 = Math.min(hsl2.l + 10, 75);
+            saturation2 = hsl2.s;
+            break;
+          case 'evaluation':
+            lightness2 = Math.min(hsl2.l + 8, 72);
+            saturation2 = Math.min(hsl2.s + 5, 80);
+            break;
+          case 'autre':
+            lightness2 = Math.min(hsl2.l + 15, 78);
+            saturation2 = Math.max(hsl2.s - 10, 50);
+            break;
+        }
+
+        const bgColor2 = `hsl(${hsl2.h}, ${saturation2}%, ${lightness2}%, ${bgOpacity})`;
+
+        return {
+          background: `linear-gradient(90deg, ${bgColor1} 0%, ${bgColor2} 100%)`,
+          borderLeft: `${borderWidth} ${borderStyle} ${borderColor}`,
+          color: borderColor,
+        };
+      }
+    }
+
     return {
-      backgroundColor: `${color}${bgOpacity}`,
-      borderLeft: `${borderWidth} ${borderStyle} ${color}`,
-      color: color,
+      backgroundColor: bgColor1,
+      borderLeft: `${borderWidth} ${borderStyle} ${borderColor}`,
+      color: borderColor,
     };
   };
 
@@ -369,12 +453,26 @@ export function PlanningCalendar() {
                         >
                           {daySeances.map((seance) => {
                             const Icon = TYPE_ICONS[seance.type as keyof typeof TYPE_ICONS];
-                            const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type);
-                            const canEdit = isTutor && seance.tuteur_id === user?.id;
-                            const isMySeance = seance.tuteur_id === user?.id;
+                            // Une séance est partagée (Tréunion) si custom_label contient "tréunion"
+                            const isShared = seance.custom_label && seance.custom_label.toLowerCase().includes('tréunion');
+                            const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type, isShared);
+                            const isCreator = seance.tuteur_id === user?.id;
+                            const canEdit = isTutor && (isCreator || isShared);
+                            const isMySeance = isCreator;
                             const canView = !canEdit && isTutor;
                             const tutorProfile = getProfile(seance.tuteur_id);
                             const tutorFirstName = tutorProfile?.display_name?.split(' ')[0] || 'Tuteur';
+
+                            // Pour les séances "autre" (Tréunions), afficher les initiales des deux tuteurs
+                            let displayName = tutorFirstName;
+                            if (isShared && profiles) {
+                              const otherProfile = profiles.find(p => p.user_id !== seance.tuteur_id && p.role === 'tuteur');
+                              if (otherProfile) {
+                                const otherFirstName = otherProfile.display_name?.split(' ')[0] || 'T';
+                                displayName = `${tutorFirstName.charAt(0)} & ${otherFirstName.charAt(0)}`;
+                              }
+                            }
+
                             const tooltipText = canEdit ? 'Cliquez pour modifier' : canView ? 'Cliquez pour consulter' : '';
                             return (
                               <div
@@ -405,7 +503,7 @@ export function PlanningCalendar() {
                                         'Autre')}
                                     </span>
                                     <span className="text-[9px] sm:text-[10px] px-0.5 sm:px-1 py-0.5 bg-white/30 rounded ml-0.5 sm:ml-1 flex-shrink-0">
-                                      {tutorFirstName}
+                                      {displayName}
                                     </span>
                                   </div>
                                   {canEdit && (
@@ -420,13 +518,15 @@ export function PlanningCalendar() {
                                       >
                                         <Pencil className="w-3 h-3" />
                                       </button>
-                                      <button
-                                        onClick={(e) => handleDeleteSeance(seance.id, e)}
-                                        className="p-0.5 hover:bg-white/50 rounded"
-                                        title="Supprimer"
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
+                                      {isCreator && (
+                                        <button
+                                          onClick={(e) => handleDeleteSeance(seance.id, e)}
+                                          className="p-0.5 hover:bg-white/50 rounded"
+                                          title="Supprimer"
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -471,12 +571,25 @@ export function PlanningCalendar() {
                     {format(day, 'd')}
                   </div>
                   {daySeances.slice(0, 2).map((seance) => {
-                    const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type);
-                    const canEdit = isTutor && seance.tuteur_id === user?.id;
-                    const isMySeance = seance.tuteur_id === user?.id;
+                    const isShared = seance.shared_with_peers === true;
+                    const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type, isShared);
+                    const isCreator = seance.tuteur_id === user?.id;
+                    const canEdit = isTutor && (isCreator || isShared);
+                    const isMySeance = isCreator;
                     const canView = !canEdit && isTutor;
                     const tutorProfile = getProfile(seance.tuteur_id);
                     const tutorFirstName = tutorProfile?.display_name?.split(' ')[0] || 'Tuteur';
+
+                    // Pour les séances partagées, afficher les initiales des deux tuteurs
+                    let displayInitials = tutorFirstName.charAt(0);
+                    if (isShared && profiles) {
+                      const otherProfile = profiles.find(p => p.user_id !== seance.tuteur_id && p.role === 'tuteur');
+                      if (otherProfile) {
+                        const otherFirstName = otherProfile.display_name?.split(' ')[0] || 'T';
+                        displayInitials = `${tutorFirstName.charAt(0)} & ${otherFirstName.charAt(0)}`;
+                      }
+                    }
+
                     return (
                       <div
                         key={seance.id}
@@ -492,7 +605,7 @@ export function PlanningCalendar() {
                             </span>
                           )}
                           {seance.creneau || seance.heure}
-                          {' • ' + tutorFirstName.charAt(0)}
+                          {' • ' + displayInitials}
                         </span>
                         {canEdit && (
                           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -506,13 +619,15 @@ export function PlanningCalendar() {
                             >
                               <Pencil className="w-2.5 h-2.5" />
                             </button>
-                            <button
-                              onClick={(e) => handleDeleteSeance(seance.id, e)}
-                              className="p-0.5 hover:bg-white/50 rounded"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="w-2.5 h-2.5" />
-                            </button>
+                            {isCreator && (
+                              <button
+                                onClick={(e) => handleDeleteSeance(seance.id, e)}
+                                className="p-0.5 hover:bg-white/50 rounded"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-2.5 h-2.5" />
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>

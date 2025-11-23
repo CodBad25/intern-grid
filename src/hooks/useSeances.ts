@@ -16,7 +16,7 @@ type NewSeanceInput = {
   creneau?: string | null;
   notes: string;
   custom_label?: string | null;
-  shared_with_peers?: boolean;
+  shared_with_peers?: boolean | null;
   classe_visitee?: string | null;
 };
 

@@ -20,6 +20,7 @@ export interface Seance {
   creneau?: 'M1' | 'M2' | 'M3' | 'M4' | 'S1' | 'S2' | 'S3' | 'S4';
   notes: string;
   custom_label?: string; // Label personnalisé pour affiner le type (ex: "Tréunion")
+  shared_with_peers?: boolean; // Séance partagée entre les deux tuteurs
   tuteurId: string;
   tuteurName: string;
   createdAt: string;
