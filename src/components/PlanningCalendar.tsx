@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, UserCheck, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, UserCheck, Plus, Pencil, Trash2, BookOpen, GraduationCap, MoreHorizontal } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSeances } from '@/hooks/useSeances';
@@ -33,6 +33,9 @@ const CRENEAU_COLORS = {
 const TYPE_ICONS = {
   visite: Eye,
   suivi: UserCheck,
+  formation: BookOpen,
+  evaluation: GraduationCap,
+  autre: MoreHorizontal,
 };
 
 type ViewMode = 'semaine' | 'mois';
@@ -174,14 +177,42 @@ export function PlanningCalendar() {
   const isTutor = user?.role === 'tuteur' || user?.role === 'admin';
 
   // Fonction pour obtenir le style avec la couleur du tuteur et nuance selon le type
-  const getTutorColorStyle = (tuteurId: string, type: 'visite' | 'suivi') => {
+  const getTutorColorStyle = (tuteurId: string, type: string) => {
     const profile = getProfile(tuteurId);
     const color = profile?.color || '#6366f1';
 
-    // Opacité plus forte pour visite, plus claire pour suivi
-    const bgOpacity = type === 'visite' ? '30' : '15';
-    const borderWidth = type === 'visite' ? '3px' : '2px';
-    const borderStyle = type === 'visite' ? 'solid' : 'dashed';
+    // Nuances selon le type
+    let bgOpacity = '20';
+    let borderWidth = '2px';
+    let borderStyle = 'solid';
+
+    switch (type) {
+      case 'visite':
+        bgOpacity = '30';
+        borderWidth = '3px';
+        borderStyle = 'solid';
+        break;
+      case 'suivi':
+        bgOpacity = '15';
+        borderWidth = '2px';
+        borderStyle = 'dashed';
+        break;
+      case 'formation':
+        bgOpacity = '25';
+        borderWidth = '2px';
+        borderStyle = 'double';
+        break;
+      case 'evaluation':
+        bgOpacity = '35';
+        borderWidth = '3px';
+        borderStyle = 'solid';
+        break;
+      case 'autre':
+        bgOpacity = '20';
+        borderWidth = '2px';
+        borderStyle = 'dotted';
+        break;
+    }
 
     return {
       backgroundColor: `${color}${bgOpacity}`,
@@ -190,9 +221,9 @@ export function PlanningCalendar() {
     };
   };
 
-  // Filtrer les séances de type visite ou suivi
+  // Afficher toutes les séances (plus seulement visite/suivi)
   const filteredSeances = useMemo(() => {
-    return seances.filter(s => s.type === 'visite' || s.type === 'suivi');
+    return seances; // On affiche tout maintenant !
   }, [seances]);
 
   // Navigation
@@ -338,29 +369,44 @@ export function PlanningCalendar() {
                         >
                           {daySeances.map((seance) => {
                             const Icon = TYPE_ICONS[seance.type as keyof typeof TYPE_ICONS];
-                            const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type as 'visite' | 'suivi');
+                            const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type);
                             const canEdit = isTutor && seance.tuteur_id === user?.id;
                             const isMySeance = seance.tuteur_id === user?.id;
                             const canView = !canEdit && isTutor;
+                            const tutorProfile = getProfile(seance.tuteur_id);
+                            const tutorFirstName = tutorProfile?.display_name?.split(' ')[0] || 'Tuteur';
+                            const tooltipText = canEdit ? 'Cliquez pour modifier' : canView ? 'Cliquez pour consulter' : '';
                             return (
                               <div
                                 key={seance.id}
                                 className={`p-1 sm:p-1.5 mb-1 rounded text-[10px] sm:text-sm group relative transition-all ${canEdit || canView ? 'cursor-pointer hover:ring-2 hover:ring-white/50 hover:shadow-md' : ''}`}
                                 style={tutorStyle}
-                                title={canEdit ? 'Cliquez pour modifier' : canView ? 'Cliquez pour consulter' : seance.notes}
+                                title={tooltipText}
                                 onClick={(e) => (canEdit || canView) && handleSeanceClick(seance, e)}
                               >
                                 <div className="flex items-center gap-0.5 sm:gap-1 justify-between">
                                   <div className="flex items-center gap-0.5 sm:gap-1 flex-1 min-w-0">
-                                    {Icon && <Icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />}
-                                    <span className="truncate font-medium">
-                                      {seance.custom_label || (seance.type === 'visite' ? 'Visite' : 'Suivi')}
+                                    {Icon && <Icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" title={
+                                      seance.type === 'visite' ? 'Visite' :
+                                      seance.type === 'suivi' ? 'Suivi' :
+                                      seance.type === 'formation' ? 'Formation' :
+                                      seance.type === 'evaluation' ? 'Évaluation' :
+                                      'Autre'
+                                    } />}
+                                    <span
+                                      className="hidden sm:inline truncate font-medium"
+                                      title={seance.custom_label ? `Type personnalisé: ${seance.custom_label}` : ''}
+                                    >
+                                      {seance.custom_label ||
+                                       (seance.type === 'visite' ? 'Visite' :
+                                        seance.type === 'suivi' ? 'Suivi' :
+                                        seance.type === 'formation' ? 'Formation' :
+                                        seance.type === 'evaluation' ? 'Évaluation' :
+                                        'Autre')}
                                     </span>
-                                    {isMySeance && (
-                                      <span className="hidden sm:inline text-[10px] px-1 py-0.5 bg-white/30 rounded ml-1 flex-shrink-0">
-                                        Moi
-                                      </span>
-                                    )}
+                                    <span className="text-[9px] sm:text-[10px] px-0.5 sm:px-1 py-0.5 bg-white/30 rounded ml-0.5 sm:ml-1 flex-shrink-0">
+                                      {tutorFirstName}
+                                    </span>
                                   </div>
                                   {canEdit && (
                                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -425,10 +471,12 @@ export function PlanningCalendar() {
                     {format(day, 'd')}
                   </div>
                   {daySeances.slice(0, 2).map((seance) => {
-                    const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type as 'visite' | 'suivi');
+                    const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type);
                     const canEdit = isTutor && seance.tuteur_id === user?.id;
                     const isMySeance = seance.tuteur_id === user?.id;
                     const canView = !canEdit && isTutor;
+                    const tutorProfile = getProfile(seance.tuteur_id);
+                    const tutorFirstName = tutorProfile?.display_name?.split(' ')[0] || 'Tuteur';
                     return (
                       <div
                         key={seance.id}
@@ -444,7 +492,7 @@ export function PlanningCalendar() {
                             </span>
                           )}
                           {seance.creneau || seance.heure}
-                          {isMySeance && ' •'}
+                          {' • ' + tutorFirstName.charAt(0)}
                         </span>
                         {canEdit && (
                           <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
