@@ -32,6 +32,7 @@ interface SeanceFormData {
   creneau?: typeof ALL_CRENEAUX[number] | '';
   notes: string;
   customType?: string;
+  customLabel?: string; // Label personnalisé pour visite/suivi
   classeVisitee?: typeof CLASSES[number] | '';
 }
 
@@ -217,6 +218,22 @@ export function SeanceForm({
                 </Button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Label personnalisé (pour visite/suivi) */}
+        {(formData.type === 'visite' || formData.type === 'suivi') && (
+          <div>
+            <Label htmlFor="customLabel">Label personnalisé (optionnel)</Label>
+            <Input
+              id="customLabel"
+              value={formData.customLabel || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, customLabel: e.target.value }))}
+              placeholder="Ex: Tréunion, Entretien, Bilan..."
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Ajoutez un sous-type pour préciser la nature de la séance
+            </p>
           </div>
         )}
 

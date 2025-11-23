@@ -2,8 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, UserCheck, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, UserCheck, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSeances } from '@/hooks/useSeances';
@@ -45,6 +46,7 @@ interface SeanceFormData {
   creneau?: typeof ALL_CRENEAUX[number] | '';
   notes: string;
   customType?: string;
+  customLabel?: string;
   classeVisitee?: string;
 }
 
@@ -56,23 +58,75 @@ const defaultFormData: SeanceFormData = {
   heure: '',
   creneau: '',
   notes: '',
+  customLabel: '',
   classeVisitee: '',
 };
 
 export function PlanningCalendar() {
   const { seances } = useData();
   const { user } = useAuth();
-  const { addSeance } = useSeances();
+  const { addSeance, updateSeance, deleteSeance } = useSeances();
   const { getProfile } = useProfiles();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('semaine');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingSeance, setEditingSeance] = useState<Seance | null>(null);
+  const [viewingSeance, setViewingSeance] = useState<Seance | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [formData, setFormData] = useState<SeanceFormData>(defaultFormData);
   const [isLoading, setIsLoading] = useState(false);
 
   // Réinitialiser le formulaire
   const resetForm = () => {
     setFormData(defaultFormData);
+    setEditingSeance(null);
+  };
+
+  // Ouvrir le dialogue de visualisation (lecture seule)
+  const openViewDialog = (seance: Seance, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setViewingSeance(seance);
+    setIsViewDialogOpen(true);
+  };
+
+  // Ouvrir le formulaire pour éditer une séance
+  const openEditForm = (seance: Seance, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSeance(seance);
+    setFormData({
+      date: seance.date,
+      duree: seance.duree,
+      type: seance.type,
+      horaireMode: seance.heure ? 'ordinaire' : 'creneau',
+      heure: seance.heure || '',
+      creneau: seance.creneau || '',
+      notes: seance.notes || '',
+      customLabel: seance.custom_label || '',
+      classeVisitee: seance.classe_visitee || '',
+    });
+    setIsFormOpen(true);
+  };
+
+  // Gérer le clic sur une séance
+  const handleSeanceClick = (seance: Seance, e: React.MouseEvent) => {
+    const canEdit = isTutor && seance.tuteur_id === user?.id;
+    if (canEdit) {
+      openEditForm(seance, e);
+    } else {
+      openViewDialog(seance, e);
+    }
+  };
+
+  // Supprimer une séance
+  const handleDeleteSeance = async (seanceId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette séance ?')) return;
+
+    try {
+      await deleteSeance(seanceId);
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    }
   };
 
   // Ouvrir le formulaire avec date et créneau pré-remplis
@@ -92,19 +146,26 @@ export function PlanningCalendar() {
 
     setIsLoading(true);
     try {
-      await addSeance({
+      const seanceData = {
         date: formData.date,
         duree: formData.duree,
         type: formData.type,
         heure: formData.horaireMode === 'ordinaire' ? formData.heure : null,
         creneau: formData.horaireMode === 'creneau' ? formData.creneau : null,
         notes: formData.notes,
+        // custom_label: formData.customLabel || null, // Décommentez après avoir appliqué la migration SQL
         classe_visitee: formData.classeVisitee || null,
-      });
+      };
+
+      if (editingSeance) {
+        await updateSeance(editingSeance.id, seanceData);
+      } else {
+        await addSeance(seanceData);
+      }
       setIsFormOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Erreur lors de la création de la séance:', error);
+      console.error('Erreur lors de la sauvegarde de la séance:', error);
     } finally {
       setIsLoading(false);
     }
@@ -112,13 +173,19 @@ export function PlanningCalendar() {
 
   const isTutor = user?.role === 'tuteur' || user?.role === 'admin';
 
-  // Fonction pour obtenir le style avec la couleur du tuteur
-  const getTutorColorStyle = (tuteurId: string) => {
+  // Fonction pour obtenir le style avec la couleur du tuteur et nuance selon le type
+  const getTutorColorStyle = (tuteurId: string, type: 'visite' | 'suivi') => {
     const profile = getProfile(tuteurId);
     const color = profile?.color || '#6366f1';
+
+    // Opacité plus forte pour visite, plus claire pour suivi
+    const bgOpacity = type === 'visite' ? '30' : '15';
+    const borderWidth = type === 'visite' ? '3px' : '2px';
+    const borderStyle = type === 'visite' ? 'solid' : 'dashed';
+
     return {
-      backgroundColor: `${color}20`,
-      borderLeft: `3px solid ${color}`,
+      backgroundColor: `${color}${bgOpacity}`,
+      borderLeft: `${borderWidth} ${borderStyle} ${color}`,
       color: color,
     };
   };
@@ -240,15 +307,15 @@ export function PlanningCalendar() {
       <CardContent>
         {viewMode === 'semaine' ? (
           // Vue Semaine avec créneaux
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse table-fixed">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full border-collapse table-fixed min-w-[640px]">
               <thead>
                 <tr>
-                  <th className="p-3 border bg-muted/50 w-20"></th>
+                  <th className="p-2 sm:p-3 border bg-muted/50 w-12 sm:w-20 text-xs sm:text-sm"></th>
                   {weekDays.map((day, i) => (
-                    <th key={i} className={`p-3 border text-center ${isSameDay(day, new Date()) ? 'bg-primary/10' : 'bg-muted/50'}`}>
-                      <div className="font-semibold text-base">{JOURS[i]}</div>
-                      <div className="text-sm text-muted-foreground">
+                    <th key={i} className={`p-2 sm:p-3 border text-center ${isSameDay(day, new Date()) ? 'bg-primary/10' : 'bg-muted/50'}`}>
+                      <div className="font-semibold text-xs sm:text-base">{JOURS[i]}</div>
+                      <div className="text-[10px] sm:text-sm text-muted-foreground">
                         {format(day, 'd', { locale: fr })}
                       </div>
                     </th>
@@ -258,7 +325,7 @@ export function PlanningCalendar() {
               <tbody>
                 {CRENEAUX.map((creneau) => (
                   <tr key={creneau}>
-                    <td className={`p-3 border text-center font-semibold text-sm ${CRENEAU_COLORS[creneau]}`}>
+                    <td className={`p-1 sm:p-3 border text-center font-semibold text-[10px] sm:text-sm ${CRENEAU_COLORS[creneau]}`}>
                       {creneau}
                     </td>
                     {weekDays.map((day, i) => {
@@ -266,28 +333,65 @@ export function PlanningCalendar() {
                       return (
                         <td
                           key={i}
-                          className={`p-2 border h-16 align-top ${isSameDay(day, new Date()) ? 'bg-primary/5' : ''} ${isTutor ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                          className={`p-1 sm:p-2 border h-12 sm:h-16 align-top ${isSameDay(day, new Date()) ? 'bg-primary/5' : ''} ${isTutor ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
                           onClick={() => isTutor && openFormWithPreset(day, creneau)}
                         >
                           {daySeances.map((seance) => {
                             const Icon = TYPE_ICONS[seance.type as keyof typeof TYPE_ICONS];
-                            const tutorStyle = getTutorColorStyle(seance.tuteur_id);
+                            const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type as 'visite' | 'suivi');
+                            const canEdit = isTutor && seance.tuteur_id === user?.id;
+                            const isMySeance = seance.tuteur_id === user?.id;
+                            const canView = !canEdit && isTutor;
                             return (
                               <div
                                 key={seance.id}
-                                className="p-1.5 mb-1 rounded text-sm"
+                                className={`p-1 sm:p-1.5 mb-1 rounded text-[10px] sm:text-sm group relative transition-all ${canEdit || canView ? 'cursor-pointer hover:ring-2 hover:ring-white/50 hover:shadow-md' : ''}`}
                                 style={tutorStyle}
-                                title={seance.notes}
+                                title={canEdit ? 'Cliquez pour modifier' : canView ? 'Cliquez pour consulter' : seance.notes}
+                                onClick={(e) => (canEdit || canView) && handleSeanceClick(seance, e)}
                               >
-                                <div className="flex items-center gap-1">
-                                  {Icon && <Icon className="w-4 h-4" />}
-                                  <span className="truncate font-medium">
-                                    {seance.type === 'visite' ? 'Visite' : 'Suivi'}
-                                  </span>
+                                <div className="flex items-center gap-0.5 sm:gap-1 justify-between">
+                                  <div className="flex items-center gap-0.5 sm:gap-1 flex-1 min-w-0">
+                                    {Icon && <Icon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />}
+                                    <span className="truncate font-medium">
+                                      {seance.custom_label || (seance.type === 'visite' ? 'Visite' : 'Suivi')}
+                                    </span>
+                                    {isMySeance && (
+                                      <span className="hidden sm:inline text-[10px] px-1 py-0.5 bg-white/30 rounded ml-1 flex-shrink-0">
+                                        Moi
+                                      </span>
+                                    )}
+                                  </div>
+                                  {canEdit && (
+                                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openEditForm(seance, e);
+                                        }}
+                                        className="p-0.5 hover:bg-white/50 rounded"
+                                        title="Modifier"
+                                      >
+                                        <Pencil className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => handleDeleteSeance(seance.id, e)}
+                                        className="p-0.5 hover:bg-white/50 rounded"
+                                        title="Supprimer"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                                {seance.duree && (
-                                  <div className="text-xs opacity-70">{seance.duree}h</div>
-                                )}
+                                <div className="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-xs opacity-70 mt-0.5">
+                                  {seance.duree && <span className="hidden sm:inline">{seance.duree}h</span>}
+                                  {seance.classe_visitee && (
+                                    <span className={`px-0.5 sm:px-1 py-0.5 rounded font-bold text-[9px] sm:text-xs ${seance.classe_visitee.startsWith('6') ? 'bg-green-500/30 text-green-900' : 'bg-yellow-500/30 text-yellow-900'}`}>
+                                      {seance.classe_visitee}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
@@ -321,14 +425,48 @@ export function PlanningCalendar() {
                     {format(day, 'd')}
                   </div>
                   {daySeances.slice(0, 2).map((seance) => {
-                    const tutorStyle = getTutorColorStyle(seance.tuteur_id);
+                    const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type as 'visite' | 'suivi');
+                    const canEdit = isTutor && seance.tuteur_id === user?.id;
+                    const isMySeance = seance.tuteur_id === user?.id;
+                    const canView = !canEdit && isTutor;
                     return (
                       <div
                         key={seance.id}
-                        className="p-0.5 mb-0.5 rounded text-[10px] truncate"
+                        className={`p-0.5 mb-0.5 rounded text-[10px] group flex items-center gap-0.5 relative transition-all ${canEdit || canView ? 'cursor-pointer hover:ring-1 hover:ring-white/50 hover:shadow' : ''}`}
                         style={tutorStyle}
+                        title={canEdit ? 'Cliquez pour modifier' : canView ? 'Cliquez pour consulter' : `${seance.creneau || seance.heure}`}
+                        onClick={(e) => (canEdit || canView) && handleSeanceClick(seance, e)}
                       >
-                        {seance.creneau || seance.heure}
+                        <span className="flex-1 min-w-0 truncate">
+                          {seance.classe_visitee && (
+                            <span className={`inline-block px-1 rounded mr-1 font-bold ${seance.classe_visitee.startsWith('6') ? 'bg-green-500/30 text-green-900' : 'bg-yellow-500/30 text-yellow-900'}`}>
+                              {seance.classe_visitee}
+                            </span>
+                          )}
+                          {seance.creneau || seance.heure}
+                          {isMySeance && ' •'}
+                        </span>
+                        {canEdit && (
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditForm(seance, e);
+                              }}
+                              className="p-0.5 hover:bg-white/50 rounded"
+                              title="Modifier"
+                            >
+                              <Pencil className="w-2.5 h-2.5" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteSeance(seance.id, e)}
+                              className="p-0.5 hover:bg-white/50 rounded"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -344,40 +482,132 @@ export function PlanningCalendar() {
         )}
 
         {/* Légende */}
-        <div className="mt-4 flex flex-wrap gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            <span>Visite</span>
+        <div className="mt-4 space-y-2">
+          <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Visite <span className="hidden sm:inline text-muted-foreground">(bordure pleine)</span></span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <UserCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Suivi <span className="hidden sm:inline text-muted-foreground">(bordure pointillée)</span></span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="w-3 h-3 rounded bg-orange-100 border border-orange-300"></div>
+              <span className="hidden sm:inline">Matin (M1-M4)</span>
+              <span className="sm:hidden">M1-M4</span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="w-3 h-3 rounded bg-purple-100 border border-purple-300"></div>
+              <span className="hidden sm:inline">Après-midi (S1-S4)</span>
+              <span className="sm:hidden">S1-S4</span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground">
+              <span className="hidden sm:inline">Couleurs = tuteurs</span>
+              <span className="sm:hidden">🎨 = tuteurs</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4" />
-            <span>Suivi</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-orange-100 border border-orange-300"></div>
-            <span>Matin (M1-M4)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-purple-100 border border-purple-300"></div>
-            <span>Après-midi (S1-S4)</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span>Couleurs = tuteurs</span>
-          </div>
+          {isTutor && (
+            <div className="text-[10px] sm:text-xs text-muted-foreground bg-muted/50 p-2 rounded border border-dashed">
+              💡 <strong>Astuce :</strong> <span className="hidden sm:inline">Vos séances sont marquées "Moi" - cliquez dessus pour les <strong>modifier</strong>. Les séances des autres tuteurs s'ouvrent en <strong>consultation</strong> (lecture seule).</span>
+              <span className="sm:hidden">Cliquez sur vos séances pour modifier, sur celles des autres pour consulter.</span>
+            </div>
+          )}
         </div>
       </CardContent>
 
-      {/* Dialog pour créer une séance */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      {/* Dialog pour créer/modifier une séance */}
+      <Dialog open={isFormOpen} onOpenChange={(open) => {
+        setIsFormOpen(open);
+        if (!open) {
+          // Ne pas réinitialiser immédiatement pour permettre la soumission
+          setTimeout(() => resetForm(), 100);
+        }
+      }}>
         <SeanceForm
           isOpen={isFormOpen}
           setIsOpen={setIsFormOpen}
-          editingSeance={null}
+          editingSeance={editingSeance}
           formData={formData}
           setFormData={setFormData}
           handleSubmit={handleSubmit}
           isLoading={isLoading}
         />
+      </Dialog>
+
+      {/* Dialog de consultation (lecture seule) */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        {viewingSeance && (
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {viewingSeance.type === 'visite' ? <Eye className="w-5 h-5" /> : <UserCheck className="w-5 h-5" />}
+                Consultation - {viewingSeance.custom_label || (viewingSeance.type === 'visite' ? 'Visite' : 'Suivi')}
+              </DialogTitle>
+              <DialogDescription>
+                Séance de {getProfile(viewingSeance.tuteur_id)?.display_name || 'tuteur'}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Date</Label>
+                  <p className="font-medium">{format(new Date(viewingSeance.date), 'EEEE dd MMMM yyyy', { locale: fr })}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Durée</Label>
+                  <p className="font-medium">{viewingSeance.duree} heure{viewingSeance.duree > 1 ? 's' : ''}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Horaire</Label>
+                  <p className="font-medium">
+                    {viewingSeance.creneau ? (
+                      <Badge className={viewingSeance.creneau.startsWith('M') ? 'bg-orange-500' : 'bg-purple-500'}>
+                        {viewingSeance.creneau}
+                      </Badge>
+                    ) : viewingSeance.heure || 'Non précisé'}
+                  </p>
+                </div>
+                {viewingSeance.classe_visitee && (
+                  <div>
+                    <Label className="text-muted-foreground">Classe</Label>
+                    <p className="font-medium">
+                      <Badge className={viewingSeance.classe_visitee.startsWith('6') ? 'bg-green-500' : 'bg-yellow-500'}>
+                        {viewingSeance.classe_visitee}
+                      </Badge>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {viewingSeance.notes && (
+                <div>
+                  <Label className="text-muted-foreground">Notes et observations</Label>
+                  <div className="mt-2 p-3 bg-muted/50 rounded border">
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: viewingSeance.notes }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t">
+                <span>Créée le {format(new Date(viewingSeance.createdAt), 'dd/MM/yyyy à HH:mm')}</span>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                Fermer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
       </Dialog>
     </Card>
   );

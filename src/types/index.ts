@@ -19,6 +19,7 @@ export interface Seance {
   heure?: string;
   creneau?: 'M1' | 'M2' | 'M3' | 'M4' | 'S1' | 'S2' | 'S3' | 'S4';
   notes: string;
+  custom_label?: string; // Label personnalisé pour affiner le type (ex: "Tréunion")
   tuteurId: string;
   tuteurName: string;
   createdAt: string;

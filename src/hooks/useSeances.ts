@@ -15,6 +15,7 @@ type NewSeanceInput = {
   heure?: string | null;
   creneau?: string | null;
   notes: string;
+  custom_label?: string | null;
   shared_with_peers?: boolean;
   classe_visitee?: string | null;
 };
