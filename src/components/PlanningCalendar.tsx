@@ -38,8 +38,10 @@ const TYPE_ICONS = {
   autre: MoreHorizontal,
 };
 
-// Vacances scolaires Zone B (Nantes) 2025-2026
+// Vacances scolaires Zone B (Nantes) 2024-2025 et 2025-2026
 const VACANCES_ZONE_B = [
+  // Été 2025 (année scolaire 2024-2025)
+  { debut: new Date('2025-07-05'), fin: new Date('2025-09-01') },
   // Toussaint 2025 (samedi 18 octobre au lundi 3 novembre 2025)
   { debut: new Date('2025-10-18'), fin: new Date('2025-11-03') },
   // Noël 2025 (samedi 20 décembre 2025 au lundi 5 janvier 2026)
@@ -496,8 +498,8 @@ export function PlanningCalendar() {
                           className={`p-1 sm:p-2 border h-12 sm:h-16 align-top ${
                             estNonTravaille ? 'bg-yellow-50' :
                             isSameDay(day, new Date()) ? 'bg-primary/5' : ''
-                          } ${isTutor && !estNonTravaille ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                          onClick={() => isTutor && !estNonTravaille && openFormWithPreset(day, creneau)}
+                          } ${isTutor ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                          onClick={() => isTutor && openFormWithPreset(day, creneau)}
                         >
                           {daySeances.map((seance) => {
                             const Icon = TYPE_ICONS[seance.type as keyof typeof TYPE_ICONS];
@@ -609,17 +611,23 @@ export function PlanningCalendar() {
               const daySeances = getSeancesForDay(day);
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isToday = isSameDay(day, new Date());
+              const estVacances = isVacances(day);
+              const estFerie = isJourFerie(day);
+              const estNonTravaille = estVacances || estFerie;
 
               return (
                 <div
                   key={i}
-                  className={`p-1 border min-h-[80px] ${!isCurrentMonth ? 'bg-muted/30 text-muted-foreground' : ''} ${isToday ? 'bg-primary/10 border-primary' : ''}`}
+                  className={`p-1 border min-h-[80px] ${
+                    estNonTravaille ? 'bg-yellow-50' :
+                    !isCurrentMonth ? 'bg-muted/30 text-muted-foreground' : ''
+                  } ${isToday ? 'bg-primary/10 border-primary' : ''}`}
                 >
                   <div className={`text-sm font-medium mb-1 ${isToday ? 'text-primary' : ''}`}>
                     {format(day, 'd')}
                   </div>
                   {daySeances.slice(0, 2).map((seance) => {
-                    const isShared = seance.shared_with_peers === true;
+                    const isShared = seance.custom_label && seance.custom_label.toLowerCase().includes('tréunion');
                     const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type, isShared);
                     const isCreator = seance.tuteur_id === user?.id;
                     const canEdit = isTutor && (isCreator || isShared);
