@@ -1061,6 +1061,8 @@ export function RapportForm({ rapport, type, onBack, onSave }: RapportFormProps)
             competences={formData.competences || {}}
             onChange={updateCompetence}
             rapportType={type}
+            currentUserId={user?.id}
+            tuteurProfiles={tuteurProfiles}
           />
 
           </SectionWrapper>

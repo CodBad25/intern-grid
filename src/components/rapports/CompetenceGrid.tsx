@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   Scale,
   Users,
@@ -12,18 +12,36 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-interface CompetenceGridProps {
-  competences: any;
-  onChange: (category: string, field: string, value: string) => void;
-  rapportType?: 'intermediaire' | 'final';
+interface TuteurProfile {
+  user_id?: string;
+  display_name?: string;
+  avatar_url?: string;
+  color?: string;
 }
 
-// Valeurs pour le rapport intermédiaire
-type CompetenceValueIntermed = 'entretenir' | 'travailler' | 'investir' | '';
-// Valeurs pour le rapport final
-type CompetenceValueFinal = 'suffisant' | 'insuffisant' | 'non_observe' | '';
+interface CompetenceGridProps {
+  competences: any;
+  onChange: (category: string, field: string, value: any) => void;
+  rapportType?: 'intermediaire' | 'final';
+  currentUserId?: string;
+  tuteurProfiles?: { tuteur1?: TuteurProfile; tuteur2?: TuteurProfile };
+}
 
-type CompetenceValue = CompetenceValueIntermed | CompetenceValueFinal;
+const DEFAULT_TUTEUR1_COLOR = 'hsl(173, 58%, 39%)'; // Teal (Laurence)
+const DEFAULT_TUTEUR2_COLOR = 'hsl(220, 90%, 56%)'; // Bleu (Badri)
+
+// Valeurs possibles
+const valuesIntermed = [
+  { id: 'entretenir', label: 'À entretenir', color: 'bg-green-500', textColor: 'text-green-700' },
+  { id: 'travailler', label: 'À travailler', color: 'bg-orange-500', textColor: 'text-orange-700' },
+  { id: 'investir', label: 'À investir', color: 'bg-red-500', textColor: 'text-red-700' },
+];
+
+const valuesFinal = [
+  { id: 'suffisant', label: 'Suffisant', color: 'bg-green-500', textColor: 'text-green-700' },
+  { id: 'insuffisant', label: 'Insuffisant', color: 'bg-red-500', textColor: 'text-red-700' },
+  { id: 'non_observe', label: 'Non observé', color: 'bg-gray-400', textColor: 'text-gray-600' },
+];
 
 const categories = [
   {
@@ -115,78 +133,206 @@ const categories = [
   },
 ];
 
-function CompetenceItem({
-  item,
+// Composant pour un bouton d'avis d'un tuteur
+function TuteurAvisButton({
   value,
-  onChange,
-  rapportType = 'intermediaire',
+  selectedValue,
+  onClick,
+  isCurrentUser,
+  tuteurColor,
 }: {
-  item: { id: string; label: string };
-  value: CompetenceValue;
-  onChange: (value: string) => void;
-  rapportType?: 'intermediaire' | 'final';
+  value: { id: string; label: string; color: string; textColor: string };
+  selectedValue: string | undefined;
+  onClick: () => void;
+  isCurrentUser: boolean;
+  tuteurColor: string;
 }) {
+  const isSelected = selectedValue === value.id;
+
   return (
-    <div className="flex items-start gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm">{item.label}</p>
+    <button
+      onClick={isCurrentUser ? onClick : undefined}
+      disabled={!isCurrentUser}
+      className={`
+        px-2 py-1 rounded-md text-xs font-medium transition-all
+        ${isSelected
+          ? `${value.color} text-white shadow-sm`
+          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600'
+        }
+        ${isCurrentUser ? 'cursor-pointer' : 'cursor-default opacity-60'}
+      `}
+      title={isCurrentUser ? `Cliquer pour sélectionner "${value.label}"` : 'Seul ce tuteur peut modifier son avis'}
+    >
+      {value.label.replace('À ', '')}
+    </button>
+  );
+}
+
+// Composant pour afficher l'avis d'un tuteur
+function TuteurAvisRow({
+  tuteurProfile,
+  tuteurKey,
+  itemValue,
+  values,
+  onSelect,
+  isCurrentUser,
+}: {
+  tuteurProfile?: TuteurProfile;
+  tuteurKey: 'tuteur1' | 'tuteur2';
+  itemValue: any;
+  values: typeof valuesIntermed;
+  onSelect: (value: string) => void;
+  isCurrentUser: boolean;
+}) {
+  const tuteurColor = tuteurProfile?.color || (tuteurKey === 'tuteur1' ? DEFAULT_TUTEUR1_COLOR : DEFAULT_TUTEUR2_COLOR);
+  const initials = tuteurProfile?.display_name?.split(' ').map(n => n[0]).join('').toUpperCase() || (tuteurKey === 'tuteur1' ? 'T1' : 'T2');
+  const selectedValue = itemValue?.[tuteurKey];
+
+  return (
+    <div className="flex items-center gap-2">
+      <Avatar className="h-6 w-6 border-2" style={{ borderColor: tuteurColor }}>
+        {tuteurProfile?.avatar_url ? (
+          <AvatarImage src={tuteurProfile.avatar_url} alt={tuteurProfile.display_name} />
+        ) : null}
+        <AvatarFallback style={{ backgroundColor: tuteurColor, color: 'white' }} className="text-xs">
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex gap-1">
+        {values.map((v) => (
+          <TuteurAvisButton
+            key={v.id}
+            value={v}
+            selectedValue={selectedValue}
+            onClick={() => onSelect(v.id)}
+            isCurrentUser={isCurrentUser}
+            tuteurColor={tuteurColor}
+          />
+        ))}
       </div>
-      <RadioGroup
-        value={value || ''}
-        onValueChange={onChange}
-        className="flex gap-4"
-      >
-        {rapportType === 'intermediaire' ? (
-          <>
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="entretenir" id={`${item.id}-entretenir`} className="text-green-600" />
-              <Label htmlFor={`${item.id}-entretenir`} className="text-xs text-green-600 cursor-pointer">
-                Entretenir
-              </Label>
-            </div>
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="travailler" id={`${item.id}-travailler`} className="text-orange-600" />
-              <Label htmlFor={`${item.id}-travailler`} className="text-xs text-orange-600 cursor-pointer">
-                Travailler
-              </Label>
-            </div>
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="investir" id={`${item.id}-investir`} className="text-red-600" />
-              <Label htmlFor={`${item.id}-investir`} className="text-xs text-red-600 cursor-pointer">
-                Investir
-              </Label>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="suffisant" id={`${item.id}-suffisant`} className="text-green-600" />
-              <Label htmlFor={`${item.id}-suffisant`} className="text-xs text-green-600 cursor-pointer">
-                Suffisant
-              </Label>
-            </div>
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="insuffisant" id={`${item.id}-insuffisant`} className="text-red-600" />
-              <Label htmlFor={`${item.id}-insuffisant`} className="text-xs text-red-600 cursor-pointer">
-                Insuffisant
-              </Label>
-            </div>
-            <div className="flex items-center gap-1">
-              <RadioGroupItem value="non_observe" id={`${item.id}-non_observe`} className="text-gray-500" />
-              <Label htmlFor={`${item.id}-non_observe`} className="text-xs text-gray-500 cursor-pointer">
-                Non observé
-              </Label>
-            </div>
-          </>
-        )}
-      </RadioGroup>
     </div>
   );
 }
 
-export function CompetenceGrid({ competences, onChange, rapportType = 'intermediaire' }: CompetenceGridProps) {
+// Composant pour afficher le statut de consensus
+function ConsensusStatus({ itemValue }: { itemValue: any }) {
+  const tuteur1Value = itemValue?.tuteur1;
+  const tuteur2Value = itemValue?.tuteur2;
+
+  if (!tuteur1Value && !tuteur2Value) {
+    return <span className="text-xs text-gray-400">En attente</span>;
+  }
+
+  if (!tuteur1Value || !tuteur2Value) {
+    return <span className="text-xs text-gray-400">1 avis manquant</span>;
+  }
+
+  if (tuteur1Value === tuteur2Value) {
+    return (
+      <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+        <CheckCircle2 className="h-3 w-3" />
+        Consensus
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-1 text-xs text-orange-600 font-medium">
+      <AlertCircle className="h-3 w-3" />
+      À discuter
+    </span>
+  );
+}
+
+// Composant pour une compétence avec double avis
+function CompetenceItemDual({
+  item,
+  itemValue,
+  onChange,
+  rapportType,
+  currentUserId,
+  tuteurProfiles,
+}: {
+  item: { id: string; label: string };
+  itemValue: any;
+  onChange: (tuteurKey: 'tuteur1' | 'tuteur2', value: string) => void;
+  rapportType: 'intermediaire' | 'final';
+  currentUserId?: string;
+  tuteurProfiles?: { tuteur1?: TuteurProfile; tuteur2?: TuteurProfile };
+}) {
+  const values = rapportType === 'intermediaire' ? valuesIntermed : valuesFinal;
+  const tuteur1Id = tuteurProfiles?.tuteur1?.user_id;
+  const tuteur2Id = tuteurProfiles?.tuteur2?.user_id;
+
+  const isCurrentUserTuteur1 = currentUserId === tuteur1Id;
+  const isCurrentUserTuteur2 = currentUserId === tuteur2Id;
+
+  return (
+    <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border space-y-2">
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-sm flex-1">{item.label}</p>
+        <ConsensusStatus itemValue={itemValue} />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-1 border-t border-gray-100 dark:border-gray-700">
+        <TuteurAvisRow
+          tuteurProfile={tuteurProfiles?.tuteur1}
+          tuteurKey="tuteur1"
+          itemValue={itemValue}
+          values={values}
+          onSelect={(value) => onChange('tuteur1', value)}
+          isCurrentUser={isCurrentUserTuteur1}
+        />
+        <TuteurAvisRow
+          tuteurProfile={tuteurProfiles?.tuteur2}
+          tuteurKey="tuteur2"
+          itemValue={itemValue}
+          values={values}
+          onSelect={(value) => onChange('tuteur2', value)}
+          isCurrentUser={isCurrentUserTuteur2}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function CompetenceGrid({
+  competences,
+  onChange,
+  rapportType = 'intermediaire',
+  currentUserId,
+  tuteurProfiles,
+}: CompetenceGridProps) {
+
+  const handleItemChange = (categoryId: string, itemId: string, tuteurKey: 'tuteur1' | 'tuteur2', value: string) => {
+    const currentCategoryData = competences[categoryId] || {};
+    const currentItemValue = currentCategoryData[itemId] || {};
+
+    const newItemValue = {
+      ...currentItemValue,
+      [tuteurKey]: value,
+    };
+
+    onChange(categoryId, itemId, newItemValue);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Légende */}
+      <div className="flex flex-wrap items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+        <span className="text-sm font-medium">Légende :</span>
+        <span className="flex items-center gap-1 text-xs">
+          <CheckCircle2 className="h-3 w-3 text-green-600" />
+          <span className="text-green-600">Consensus</span>
+          <span className="text-gray-500 ml-1">= les deux tuteurs sont d'accord</span>
+        </span>
+        <span className="flex items-center gap-1 text-xs">
+          <AlertCircle className="h-3 w-3 text-orange-600" />
+          <span className="text-orange-600">À discuter</span>
+          <span className="text-gray-500 ml-1">= avis différents</span>
+        </span>
+      </div>
+
       {categories.map((category) => {
         const Icon = category.icon;
         const categoryData = competences[category.id] || {};
@@ -206,25 +352,16 @@ export function CompetenceGrid({ competences, onChange, rapportType = 'intermedi
             </CardHeader>
             <CardContent className="space-y-3">
               {category.items.map((item) => (
-                <CompetenceItem
+                <CompetenceItemDual
                   key={item.id}
                   item={item}
-                  value={categoryData[item.id] || ''}
-                  onChange={(value) => onChange(category.id, item.id, value)}
+                  itemValue={categoryData[item.id]}
+                  onChange={(tuteurKey, value) => handleItemChange(category.id, item.id, tuteurKey, value)}
                   rapportType={rapportType}
+                  currentUserId={currentUserId}
+                  tuteurProfiles={tuteurProfiles}
                 />
               ))}
-
-              <div className="pt-2">
-                <Label className="text-sm font-medium">Commentaires</Label>
-                <Textarea
-                  value={categoryData.commentaire || ''}
-                  onChange={(e) => onChange(category.id, 'commentaire', e.target.value)}
-                  placeholder="Commentaires sur cette catégorie de compétences..."
-                  rows={2}
-                  className="mt-2 bg-white dark:bg-gray-800"
-                />
-              </div>
             </CardContent>
           </Card>
         );
