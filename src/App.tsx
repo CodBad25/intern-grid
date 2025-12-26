@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import NotificationSettingsPage from './pages/NotificationSettings';
 import UserSettingsPage from './pages/UserSettings';
 import { ItemsPage } from './components/ItemsPage';
+import { Rapports } from './components/rapports';
 
 const queryClient = new QueryClient();
 
@@ -39,7 +40,7 @@ function AppContent() {
   }
 
   // Si on n'est pas connecté ET qu'on est sur une route protégée
-  const protectedRoutes = ['/dashboard', '/seances', '/documents', '/commentaires', '/planning', '/notification-settings', '/user-settings', '/items'];
+  const protectedRoutes = ['/dashboard', '/seances', '/documents', '/commentaires', '/planning', '/notification-settings', '/user-settings', '/items', '/rapports'];
   if (!user && protectedRoutes.includes(location.pathname)) {
     return <Navigate to="/auth" replace />;
   }
@@ -57,6 +58,7 @@ function AppContent() {
       <Route path="/notification-settings" element={user ? <Layout><NotificationSettingsPage /></Layout> : <Navigate to="/auth" replace />} />
       <Route path="/user-settings" element={user ? <Layout><UserSettingsPage /></Layout> : <Navigate to="/auth" replace />} />
       <Route path="/items" element={user ? <Layout><ItemsPage /></Layout> : <Navigate to="/auth" replace />} />
+      <Route path="/rapports" element={user ? <Layout><Rapports /></Layout> : <Navigate to="/auth" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

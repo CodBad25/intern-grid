@@ -10,7 +10,8 @@ import {
   LogOut,
   Settings,
   User,
-  Target
+  Target,
+  ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Commentaires', href: '/commentaires', icon: MessageSquare },
   { name: 'Planning', href: '/planning', icon: CalendarDays },
   { name: 'Objectifs', href: '/items', icon: Target },
+  { name: 'Rapports', href: '/rapports', icon: ClipboardList },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
