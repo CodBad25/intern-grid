@@ -81,16 +81,33 @@ export function useRapports() {
   // Auto-fix: Ajouter tuteur2_id aux rapports existants qui n'en ont pas
   useEffect(() => {
     const fixMissingTuteur2 = async () => {
-      if (!rapports || rapports.length === 0) return;
+      if (!rapports || rapports.length === 0) {
+        console.log('[useRapports] No rapports to fix');
+        return;
+      }
+
+      console.log('[useRapports] Checking rapports:', rapports.map(r => ({ id: r.id, tuteur1_id: r.tuteur1_id, tuteur2_id: r.tuteur2_id })));
 
       // Chercher les rapports sans tuteur2_id
       const rapportsSansTuteur2 = rapports.filter(r => !r.tuteur2_id && r.tuteur1_id);
-      if (rapportsSansTuteur2.length === 0) return;
+      if (rapportsSansTuteur2.length === 0) {
+        console.log('[useRapports] All rapports have tuteur2_id');
+        return;
+      }
+
+      console.log('[useRapports] Rapports missing tuteur2_id:', rapportsSansTuteur2.length);
 
       // Chercher l'ID de l'autre tuteur
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, display_name');
+
+      if (profilesError) {
+        console.error('[useRapports] Error fetching profiles:', profilesError);
+        return;
+      }
+
+      console.log('[useRapports] Profiles found:', profiles);
 
       const laurence = profiles?.find(p =>
         p.display_name?.toLowerCase().includes('laurence') ||
@@ -101,6 +118,8 @@ export function useRapports() {
         p.display_name?.toLowerCase().includes('belhaj')
       );
 
+      console.log('[useRapports] Laurence:', laurence, 'Badri:', badri);
+
       for (const rapport of rapportsSansTuteur2) {
         // Si tuteur1 est Laurence, tuteur2 est Badri et vice versa
         let tuteur2Id = null;
@@ -110,17 +129,24 @@ export function useRapports() {
           tuteur2Id = laurence?.user_id;
         }
 
+        console.log(`[useRapports] Rapport ${rapport.id}: tuteur1_id=${rapport.tuteur1_id}, computed tuteur2Id=${tuteur2Id}`);
+
         if (tuteur2Id) {
-          console.log(`Fixing rapport ${rapport.id}: adding tuteur2_id = ${tuteur2Id}`);
-          await supabase
+          console.log(`[useRapports] Fixing rapport ${rapport.id}: adding tuteur2_id = ${tuteur2Id}`);
+          const { error: updateError } = await supabase
             .from('rapports')
             .update({ tuteur2_id: tuteur2Id })
             .eq('id', rapport.id);
+
+          if (updateError) {
+            console.error('[useRapports] Error updating rapport:', updateError);
+          } else {
+            console.log('[useRapports] Rapport updated successfully');
+            // Rafraîchir les données après fix
+            queryClient.invalidateQueries({ queryKey: ['rapports'] });
+          }
         }
       }
-
-      // Rafraîchir les données
-      queryClient.invalidateQueries({ queryKey: ['rapports'] });
     };
 
     fixMissingTuteur2();
