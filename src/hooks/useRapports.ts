@@ -78,31 +78,53 @@ export function useRapports() {
     enabled: !!user?.id,
   });
 
-  // Subscribe to realtime changes
-  // DÉSACTIVÉ temporairement car cause des problèmes de scroll lors de la saisie
-  // useEffect(() => {
-  //   if (!user?.id) return;
-  //
-  //   const channel = supabase
-  //     .channel('rapports-changes')
-  //     .on(
-  //       'postgres_changes',
-  //       {
-  //         event: '*',
-  //         schema: 'public',
-  //         table: 'rapports',
-  //       },
-  //       (payload) => {
-  //         console.log('Rapport changed:', payload);
-  //         queryClient.invalidateQueries({ queryKey: ['rapports', user.id] });
-  //       }
-  //     )
-  //     .subscribe();
-  //
-  //   return () => {
-  //     channel.unsubscribe();
-  //   };
-  // }, [user?.id, queryClient]);
+  // Auto-fix: Ajouter tuteur2_id aux rapports existants qui n'en ont pas
+  useEffect(() => {
+    const fixMissingTuteur2 = async () => {
+      if (!rapports || rapports.length === 0) return;
+
+      // Chercher les rapports sans tuteur2_id
+      const rapportsSansTuteur2 = rapports.filter(r => !r.tuteur2_id && r.tuteur1_id);
+      if (rapportsSansTuteur2.length === 0) return;
+
+      // Chercher l'ID de l'autre tuteur
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, display_name');
+
+      const laurence = profiles?.find(p =>
+        p.display_name?.toLowerCase().includes('laurence') ||
+        p.display_name?.toLowerCase().includes('mauny')
+      );
+      const badri = profiles?.find(p =>
+        p.display_name?.toLowerCase().includes('badri') ||
+        p.display_name?.toLowerCase().includes('belhaj')
+      );
+
+      for (const rapport of rapportsSansTuteur2) {
+        // Si tuteur1 est Laurence, tuteur2 est Badri et vice versa
+        let tuteur2Id = null;
+        if (rapport.tuteur1_id === laurence?.user_id) {
+          tuteur2Id = badri?.user_id;
+        } else if (rapport.tuteur1_id === badri?.user_id) {
+          tuteur2Id = laurence?.user_id;
+        }
+
+        if (tuteur2Id) {
+          console.log(`Fixing rapport ${rapport.id}: adding tuteur2_id = ${tuteur2Id}`);
+          await supabase
+            .from('rapports')
+            .update({ tuteur2_id: tuteur2Id })
+            .eq('id', rapport.id);
+        }
+      }
+
+      // Rafraîchir les données
+      queryClient.invalidateQueries({ queryKey: ['rapports'] });
+    };
+
+    fixMissingTuteur2();
+  }, [rapports, queryClient]);
 
   // Get specific rapports
   const rapportIntermediaire = rapports?.find(r => r.type === 'intermediaire');
@@ -113,11 +135,26 @@ export function useRapports() {
     mutationFn: async (type: 'intermediaire' | 'final') => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      // Chercher les deux tuteurs dans les profils
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, display_name');
+
+      const laurence = profiles?.find(p =>
+        p.display_name?.toLowerCase().includes('laurence') ||
+        p.display_name?.toLowerCase().includes('mauny')
+      );
+      const badri = profiles?.find(p =>
+        p.display_name?.toLowerCase().includes('badri') ||
+        p.display_name?.toLowerCase().includes('belhaj')
+      );
+
       const newRapport = {
         type,
         annee_scolaire: '2025-2026',
         status: 'brouillon' as const,
-        tuteur1_id: user.id,
+        tuteur1_id: laurence?.user_id || user.id,
+        tuteur2_id: badri?.user_id || null,
         // Pré-remplissage avec les informations réelles
         stagiaire_nom: 'V',
         stagiaire_prenom: 'Barbara',
