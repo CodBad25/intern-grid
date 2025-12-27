@@ -62,16 +62,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 />
               </div>
 
-              {/* Logo */}
-              <Link to="/dashboard" className="flex items-center space-x-2 flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">ST</span>
-                </div>
-                <span className="font-semibold text-foreground text-sm sm:text-base">
-                  {isMobile ? 'Suivi Tuteur' : 'Suivi Tuteur'}
-                </span>
-              </Link>
-
               {/* Mobile User Name (première ligne) */}
               <div className="md:hidden flex-shrink-0 ml-auto">
                 <span className="text-xs font-medium text-foreground max-w-[80px] truncate">
@@ -81,24 +71,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Desktop Navigation - Caché sur mobile */}
-            <div className="hidden md:flex items-center space-x-1 flex-grow justify-center max-w-2xl">
+            <div className="hidden md:flex items-center space-x-1 flex-grow justify-center">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
-                
+
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`px-2 lg:px-3 py-2 rounded-md text-xs lg:text-sm font-medium transition-colors whitespace-nowrap ${
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                       isActive
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                     }`}
                   >
-                    <div className="flex items-center space-x-1 lg:space-x-2">
+                    <div className="flex items-center space-x-2">
                       <Icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="hidden lg:block">{item.name}</span>
+                      <span>{item.name}</span>
                     </div>
                   </Link>
                 );
