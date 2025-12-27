@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Filter, RefreshCw, Users, FileText, Calendar, MessageSquare, Clock, Shield, Settings, TrendingUp, UserCheck, Image, Palette, Target, ListTodo } from 'lucide-react';
+import { Bell, Filter, RefreshCw, Users, FileText, Calendar, MessageSquare, Clock, Shield, Settings, TrendingUp, UserCheck, Image, Palette, Target, ListTodo, ClipboardList, FolderOpen, LayoutGrid } from 'lucide-react';
 
 export function Features() {
   return (
@@ -47,18 +47,20 @@ export function Features() {
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
                   Documents & Ressources
-                  <Badge variant="secondary">✨ Nouveau</Badge>
+                  <Badge variant="secondary">✨ Amélioré</Badge>
                 </CardTitle>
-                <CardDescription>Stockage sécurisé avec Supabase</CardDescription>
+                <CardDescription>Stockage sécurisé avec catégories</CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
                   <li>• ✅ Upload direct depuis le PC (PDF, Word, images)</li>
                   <li>• ✅ Stockage sécurisé en Europe (Supabase)</li>
                   <li>• ✅ Partage de liens externes</li>
-                  <li>• ✅ Catégorisation par type</li>
-                  <li>• ✅ Descriptions détaillées</li>
-                  <li>• ✅ Gestion des permissions</li>
+                  <li>• ✅ <strong>6 catégories</strong> : Pédagogie, Administratif, Outils, Ressources, Formation, Autre</li>
+                  <li>• ✅ <strong>Filtres par chips</strong> cliquables avec compteurs</li>
+                  <li>• ✅ <strong>Vue Grille / Liste</strong> au choix</li>
+                  <li>• ✅ Cartes épurées avec favicon et bordure colorée</li>
+                  <li>• ✅ Barre de recherche toujours visible</li>
                 </ul>
               </CardContent>
             </Card>
@@ -190,6 +192,31 @@ export function Features() {
                   <li>• ✅ Formulaire collapsible pour meilleure UX</li>
                   <li>• ✅ Dates modifiables par les tuteurs</li>
                   <li>• ✅ Observations sur les objectifs</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Rapports */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                  Rapports d'Évaluation
+                  <Badge variant="secondary">✨ Nouveau</Badge>
+                </CardTitle>
+                <CardDescription>Rapports officiels intermédiaire et final</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li>• ✅ <strong>Rapport Intermédiaire</strong> (échéance 17 janvier)</li>
+                  <li>• ✅ <strong>Rapport Final</strong> (échéance juin)</li>
+                  <li>• ✅ Système <strong>dual-tuteur</strong> pour compétences</li>
+                  <li>• ✅ Consensus automatique des évaluations</li>
+                  <li>• ✅ <strong>Impression PDF</strong> format officiel académique</li>
+                  <li>• ✅ 27 compétences réparties en 6 sections</li>
+                  <li>• ✅ Axes thématiques de travail</li>
+                  <li>• ✅ Visibilité partagée entre tuteurs</li>
+                  <li>• ✅ Barre de progression en temps réel</li>
                 </ul>
               </CardContent>
             </Card>
@@ -390,6 +417,27 @@ export function Features() {
                   <li>• ✅ Formulaires collapsibles (objectifs, tâches, création)</li>
                   <li>• ✅ Couleurs des tuteurs dans le calendrier</li>
                   <li>• ✅ Amélioration de l'UX générale</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-green-600">✅ Complété (v2.7)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li>• ✅ **Rapports d'évaluation** intermédiaire et final</li>
+                  <li>• ✅ Système dual-tuteur pour évaluation des compétences</li>
+                  <li>• ✅ Consensus automatique entre tuteurs</li>
+                  <li>• ✅ **Impression PDF** format officiel académique</li>
+                  <li>• ✅ 27 compétences en 6 sections</li>
+                  <li>• ✅ **Documents améliorés** : 6 catégories</li>
+                  <li>• ✅ Filtres par chips cliquables avec compteurs</li>
+                  <li>• ✅ Vue Grille / Liste pour documents</li>
+                  <li>• ✅ Design épuré des cartes documents</li>
+                  <li>• ✅ **Navigation simplifiée** : tous les boutons visibles</li>
+                  <li>• ✅ Mobile : onglets Objectifs et Rapports ajoutés</li>
                 </ul>
               </CardContent>
             </Card>
