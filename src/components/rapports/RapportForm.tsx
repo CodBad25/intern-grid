@@ -33,6 +33,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AxeSection } from './AxeSection';
 import { CompetenceGrid } from './CompetenceGrid';
 import { CollaborationIndicator } from './CollaborationIndicator';
+import { RapportPrintView } from './RapportPrintView';
 import { useDebounce } from '@/hooks/useDebounce';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,6 +74,7 @@ export function RapportForm({ rapport, type, onBack, onSave }: RapportFormProps)
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState('informations');
   const [tuteurProfiles, setTuteurProfiles] = useState<{tuteur1?: any, tuteur2?: any}>({});
+  const [showPrintView, setShowPrintView] = useState(false);
 
 
 
@@ -355,7 +357,7 @@ export function RapportForm({ rapport, type, onBack, onSave }: RapportFormProps)
   };
 
   const handlePrint = () => {
-    window.print();
+    setShowPrintView(true);
   };
 
   const calculateProgress = (): number => {
@@ -618,6 +620,16 @@ export function RapportForm({ rapport, type, onBack, onSave }: RapportFormProps)
       </div>
     );
   };
+
+  // Si mode impression, afficher uniquement le RapportPrintView
+  if (showPrintView) {
+    return (
+      <RapportPrintView
+        rapport={formData}
+        onClose={() => setShowPrintView(false)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
