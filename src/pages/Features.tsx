@@ -421,9 +421,9 @@ export function Features() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-2 border-green-500">
               <CardHeader>
-                <CardTitle className="text-green-600">✅ Complété (v2.7)</CardTitle>
+                <CardTitle className="text-green-600">✅ Version Actuelle (v3.0)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
@@ -444,7 +444,7 @@ export function Features() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-orange-600">📋 Planifié (v3.0)</CardTitle>
+                <CardTitle className="text-orange-600">📋 Planifié (v3.1)</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-sm">
