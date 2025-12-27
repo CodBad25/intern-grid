@@ -69,16 +69,34 @@ export function Rapports() {
       if (axe.etat_actuel) filled++;
     });
 
-    // Compétences (approximation)
-    total += 20;
+    // Compétences (27 items, consensus requis = les 2 tuteurs doivent avoir voté)
+    const competenceItems = 27; // Nombre total de compétences à évaluer
+    total += competenceItems;
     const competences = rapport.competences || {};
+    let competencesFilled = 0;
     Object.values(competences).forEach((cat: any) => {
-      Object.values(cat).forEach((val: any) => {
-        if (val && val !== '') filled++;
-      });
+      if (cat && typeof cat === 'object') {
+        Object.values(cat).forEach((item: any) => {
+          // Nouveau format: { tuteur1: 'value', tuteur2: 'value' }
+          if (item && typeof item === 'object' && item.tuteur1 && item.tuteur2) {
+            competencesFilled++;
+          }
+          // Ancien format: valeur simple
+          else if (item && typeof item === 'string' && item !== '') {
+            competencesFilled++;
+          }
+        });
+      }
     });
+    filled += Math.min(competencesFilled, competenceItems);
 
-    return Math.min(100, Math.round((filled / total) * 100));
+    // Synthèse (axes fin d'année)
+    total += 2;
+    const axesFinAnnee = rapport.axes_fin_annee || {};
+    if (axesFinAnnee.a_conforter) filled++;
+    if (axesFinAnnee.a_travailler) filled++;
+
+    return Math.round((filled / total) * 100);
   };
 
   const handleOpenRapport = (type: RapportType, mode: 'edit' | 'view') => {

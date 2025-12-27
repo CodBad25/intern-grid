@@ -5,16 +5,16 @@ import {
   LayoutDashboard,
   Calendar,
   FileText,
-  MessageSquare,
-  CalendarDays,
+  Target,
+  ClipboardList,
 } from "lucide-react";
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Home", href: "/dashboard", icon: LayoutDashboard },
   { name: "Séances", href: "/seances", icon: Calendar },
   { name: "Docs", href: "/documents", icon: FileText },
-  { name: "Comms", href: "/commentaires", icon: MessageSquare },
-  { name: "Planning", href: "/planning", icon: CalendarDays },
+  { name: "Objectifs", href: "/items", icon: Target },
+  { name: "Rapports", href: "/rapports", icon: ClipboardList },
 ];
 
 export function MobileBottomNav() {
