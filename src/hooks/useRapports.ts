@@ -161,6 +161,19 @@ export function useRapports() {
     mutationFn: async (type: 'intermediaire' | 'final') => {
       if (!user?.id) throw new Error('User not authenticated');
 
+      // Vérifier si un rapport de ce type existe déjà (anti-doublon)
+      const { data: existingRapports } = await supabase
+        .from('rapports')
+        .select('id, tuteur1_id, tuteur2_id')
+        .eq('type', type)
+        .eq('annee_scolaire', '2025-2026');
+
+      if (existingRapports && existingRapports.length > 0) {
+        console.log(`[useRapports] Rapport ${type} already exists, skipping creation`);
+        toast.info('Un rapport de ce type existe déjà');
+        throw new Error('Rapport already exists');
+      }
+
       // Chercher les deux tuteurs dans les profils
       const { data: profiles } = await supabase
         .from('profiles')
