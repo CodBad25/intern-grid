@@ -62,45 +62,65 @@ This project is built with:
 
 ## Fonctionnalités de l'Application
 
-### Version Actuelle (v2.0)
+### Version Actuelle (v3.0) - Décembre 2025
+
+#### 📋 Rapports d'Évaluation (Nouveau)
+- **Rapport Intermédiaire** : Échéance 17 janvier 2026
+- **Rapport Final** : Échéance juin 2026
+- **Système dual-tuteur** : Chaque tuteur évalue indépendamment les compétences
+- **Consensus automatique** : Détection des accords/désaccords entre tuteurs
+- **Impression PDF** : Format officiel académique conforme au modèle de l'Éducation Nationale
+- **27 compétences** réparties en 6 sections officielles
+- **Axes thématiques** de travail avec suivi d'évolution
+- **Visibilité partagée** entre les deux tuteurs
+
+#### 📁 Documents & Ressources (Amélioré)
+- **6 catégories** : Pédagogie, Administratif, Outils, Ressources, Formation, Autre
+- **Filtres par chips** cliquables avec compteurs
+- **Vue Grille / Liste** au choix
+- **Design épuré** : cartes avec favicon et bordure colorée par catégorie
+- **Barre de recherche** toujours visible
+- Upload direct depuis le PC (PDF, Word, images)
+- Stockage sécurisé en Europe (Supabase)
+
+#### 🧭 Navigation Simplifiée
+- Tous les boutons de navigation visibles (pas de dropdowns)
+- Mobile : onglets Objectifs et Rapports ajoutés
+- Logo ST supprimé pour plus d'espace
 
 #### 🔔 Système de Notifications Avancé
-- **Mises à jour en temps réel** : Polling automatique toutes les 30 secondes
+- **Mises à jour en temps réel** via WebSockets (Supabase Realtime)
 - **Filtrage avancé** : Par type, statut (lu/non lu), et période
-- **Gestion intelligente** : Notifications automatiques entre utilisateurs avec respect des préférences de partage
+- **Gestion intelligente** : Notifications automatiques entre utilisateurs
 - **Interface intuitive** : Dropdown avec compteur de notifications non lues
 
 #### 📚 Gestion Complète des Stagiaires
-- **Séances** : Planification avec types (visite, formation, évaluation) et modes horaires
-- **Documents** : Upload de fichiers et partage de liens avec descriptions
-- **Remarques & Questions** : Système de commentaires interactif avec réponses éditables
-- **Planning** : Vue calendaire intégrée des événements et séances
+- **Séances** : Planification avec types (visite, formation, évaluation) et modes horaires (M1-M4, S1-S4)
+- **Documents** : Upload de fichiers et partage de liens avec catégories
+- **Remarques & Questions** : Système de commentaires interactif avec réactions émojis
+- **Planning** : Vue calendaire avec créneaux et couleurs par tuteur
+- **Objectifs & Tâches** : Suivi avec statuts et liaisons aux visites
 - **Dashboard** : Statistiques en temps réel et vue d'ensemble
 
-#### 🔐 Sécurité & Rôles
-- Authentification sécurisée avec rôles (Tuteur, Admin, Stagiaire)
-- Permissions granulaires par fonctionnalité
-- Sessions persistantes
+#### 👥 Présence & Profils
+- Indicateur d'utilisateurs en ligne en temps réel
+- Avatars personnalisés avec upload
+- Couleurs personnalisées pour chaque tuteur
+- Statuts personnalisables (Disponible, En réunion, etc.)
 
-### Améliorations Récentes (v2.1)
-1. ✅ **Navigation contextuelle** depuis les notifications (redirection vers le contenu spécifique).
-2. ✅ **Préférences de notifications** entièrement personnalisables et fonctionnelles.
-3. ✅ **Tableau de bord analytique avancé** avec graphiques d'activité et de progression.
-4. ✅ **Améliorations de l'interface** et corrections de bugs (responsive, liens, etc.).
-
-### Améliorations Récentes (v2.0)
-1. ✅ **Notifications en temps réel** avec polling automatique
-2. ✅ **Filtrage avancé** des notifications par type, statut et période
-3. ✅ **Interface améliorée** avec design responsive
-4. ✅ **Gestion granulaire** des permissions de partage
+#### 🔐 Sécurité & Backend
+- Authentification Supabase complète
+- Stockage sécurisé en Europe (RGPD)
+- Rôles : Tuteur, Admin, Stagiaire
+- Sessions persistantes et permissions RLS
 
 ### Prochaines Versions
 
-#### v3.0 (Planifié)
-- 📋 WebSocket/Server-Sent Events pour le temps réel
+#### v3.1 (Planifié)
 - 📋 Notifications push natives
 - 📋 API REST complète
 - 📋 Mode hors ligne avec synchronisation
+- 📋 Chat en temps réel
 
 Pour plus de détails, consultez l'onglet **Fonctionnalités** dans l'application.
 
