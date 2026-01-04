@@ -46,7 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background no-horizontal-scroll">
       {/* Navigation */}
-      <nav className="bg-card border-b border-border sticky top-0 z-40 w-full">
+      <nav className="bg-card border-b border-border sticky top-0 z-40 w-full print:hidden">
         <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           {/* Header sur mobile: 2 lignes, sur desktop: 1 ligne */}
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center md:h-16 py-2 gap-2">
@@ -165,7 +165,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Barre de navigation mobile en bas */}
-      <MobileBottomNav />
+      <div className="print:hidden">
+        <MobileBottomNav />
+      </div>
     </div>
   );
 }
