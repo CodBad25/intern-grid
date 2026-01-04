@@ -135,6 +135,73 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
     window.print();
   };
 
+  const handleExportHTML = () => {
+    // Récupérer le contenu du rapport
+    const content = document.querySelector('.print-container');
+    if (!content) return;
+
+    // Cloner le contenu pour ne pas modifier l'original
+    const clone = content.cloneNode(true) as HTMLElement;
+
+    // Supprimer les boutons du clone
+    const buttons = clone.querySelector('.print\\:hidden');
+    if (buttons) buttons.remove();
+
+    // Créer le HTML complet
+    const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rapport ${rapport.stagiaire_prenom} ${rapport.stagiaire_nom} - ${rapport.annee_scolaire || '2025-2026'}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; padding: 20px; max-width: 210mm; margin: 0 auto; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+    td, th { border: 1px solid black; padding: 4px 6px; }
+    .bg-gray-100 { background-color: #f3f4f6; }
+    .bg-gray-200 { background-color: #e5e7eb; }
+    .bg-gray-50 { background-color: #f9fafb; }
+    .font-bold { font-weight: bold; }
+    .text-center { text-align: center; }
+    .text-xs { font-size: 10px; }
+    .italic { font-style: italic; }
+    .whitespace-pre-wrap { white-space: pre-wrap; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .mt-6 { margin-top: 24px; }
+    .mt-8 { margin-top: 32px; }
+    .p-2 { padding: 8px; }
+    .grid { display: grid; gap: 16px; }
+    .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+    h1 { font-size: 18px; margin-bottom: 8px; }
+    h2 { font-size: 16px; margin-bottom: 8px; }
+    h3 { font-size: 14px; margin-bottom: 8px; }
+    @media print {
+      body { padding: 10mm; }
+      .print-avoid-break { break-inside: avoid; }
+      .print-break-before { break-before: page; }
+    }
+  </style>
+</head>
+<body>
+${clone.innerHTML}
+</body>
+</html>`;
+
+    // Créer et télécharger le fichier
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rapport_${rapport.stagiaire_nom}_${rapport.stagiaire_prenom}_${rapport.annee_scolaire || '2025-2026'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   // Fonction pour obtenir la valeur d'une compétence (consensus des deux tuteurs)
   const getCompetenceValue = (categoryId: string, itemId: string): string | null => {
     const categoryData = rapport.competences?.[categoryId];
@@ -193,6 +260,12 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
         >
           Imprimer / PDF
+        </button>
+        <button
+          onClick={handleExportHTML}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+        >
+          Export HTML
         </button>
         <button
           onClick={onClose}
