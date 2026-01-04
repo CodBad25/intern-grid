@@ -176,10 +176,10 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
 
     return (
       <tr key={`${sectionIndex}-${itemIndex}`}>
-        <td className="border border-black p-1 text-xs">{itemText}</td>
-        <td className="border border-black p-1 text-center text-xs w-20">{isEntretenir ? '✓' : ''}</td>
-        <td className="border border-black p-1 text-center text-xs w-20">{isTravailler ? '✓' : ''}</td>
-        <td className="border border-black p-1 text-center text-xs w-20">{isInvestir ? '✓' : ''}</td>
+        <td className="border border-black p-0.5 text-[10px]">{itemText}</td>
+        <td className="border border-black p-0.5 text-center text-[10px] w-16">{isEntretenir ? '✓' : ''}</td>
+        <td className="border border-black p-0.5 text-center text-[10px] w-16">{isTravailler ? '✓' : ''}</td>
+        <td className="border border-black p-0.5 text-center text-[10px] w-16">{isInvestir ? '✓' : ''}</td>
       </tr>
     );
   };
@@ -346,13 +346,13 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
             <strong> à investir</strong> : compétence qui n'a pas encore fait l'objet d'un travail spécifique
           </p>
 
-          <table className="border-collapse border border-black text-xs w-full">
+          <table className="border-collapse border border-black text-[10px] w-full">
             <thead>
               <tr>
-                <th className="border border-black p-1 text-left">CC : compétences communes</th>
-                <th className="border border-black p-1 w-20 text-center">à entretenir</th>
-                <th className="border border-black p-1 w-20 text-center">à travailler encore</th>
-                <th className="border border-black p-1 w-20 text-center">à investir</th>
+                <th className="border border-black p-0.5 text-left">CC : compétences communes</th>
+                <th className="border border-black p-0.5 w-16 text-center">à entretenir</th>
+                <th className="border border-black p-0.5 w-16 text-center">à travailler encore</th>
+                <th className="border border-black p-0.5 w-16 text-center">à investir</th>
               </tr>
             </thead>
             <tbody>
@@ -360,12 +360,12 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
                 <React.Fragment key={sectionIndex}>
                   {/* Section header */}
                   <tr>
-                    <td colSpan={4} className="border border-black p-1 bg-gray-200 font-bold text-xs">
+                    <td colSpan={4} className="border border-black p-0.5 bg-gray-200 font-bold text-[10px]">
                       {section.section}
                     </td>
                   </tr>
                   <tr>
-                    <td colSpan={4} className="border border-black p-1 bg-gray-100 text-xs italic whitespace-pre-wrap">
+                    <td colSpan={4} className="border border-black p-0.5 bg-gray-100 text-[10px] italic whitespace-pre-wrap">
                       {section.subtitle}
                     </td>
                   </tr>
@@ -374,9 +374,9 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
                   {/* Commentaires */}
                   {section.hasComment && (
                     <tr>
-                      <td colSpan={4} className="border border-black p-1 bg-gray-50">
+                      <td colSpan={4} className="border border-black p-0.5 bg-gray-50">
                         <span className="font-bold">Commentaires :</span>
-                        <div className="h-6"></div>
+                        <div className="h-4"></div>
                       </td>
                     </tr>
                   )}
