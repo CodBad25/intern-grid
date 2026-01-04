@@ -219,7 +219,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
         </div>
 
         {/* Tableaux Stagiaire + Tuteurs */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-6 print-avoid-break">
           {/* Stagiaire */}
           <table className="border-collapse border border-black text-xs w-full">
             <tbody>
@@ -256,7 +256,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
         </div>
 
         {/* Modalités d'accompagnement */}
-        <div className="mb-6">
+        <div className="mb-6 print-avoid-break">
           <h3 className="font-bold text-sm mb-2">Modalités d'accompagnement</h3>
           <table className="border-collapse border border-black text-xs w-full">
             <tbody>
@@ -295,7 +295,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
           {[0, 1, 2].map((index) => {
             const axe = rapport.axes?.[index] || {};
             return (
-              <table key={index} className="border-collapse border border-black text-xs w-full mb-4">
+              <table key={index} className="border-collapse border border-black text-xs w-full mb-4 print-avoid-break">
                 <tbody>
                   <tr>
                     <td className="border border-black p-1 font-bold bg-gray-100">
@@ -303,25 +303,25 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 min-h-[30px]">{axe.titre}</td>
+                    <td className="border border-black p-2">{axe.titre}</td>
                   </tr>
                   <tr>
                     <td className="border border-black p-1 font-bold bg-gray-100">Constat de départ</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 min-h-[40px] whitespace-pre-wrap">{axe.constat_depart}</td>
+                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.constat_depart}</td>
                   </tr>
                   <tr>
                     <td className="border border-black p-1 font-bold bg-gray-100">Évolution constatée</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 min-h-[40px] whitespace-pre-wrap">{axe.evolution}</td>
+                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.evolution}</td>
                   </tr>
                   <tr>
                     <td className="border border-black p-1 font-bold bg-gray-100">État des lieux à ce jour</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 min-h-[40px] whitespace-pre-wrap">{axe.etat_actuel}</td>
+                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.etat_actuel}</td>
                   </tr>
                   <tr>
                     <td className="border border-black p-1 font-bold bg-gray-100">
@@ -379,7 +379,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
                     <tr>
                       <td colSpan={4} className="border border-black p-1 bg-gray-50">
                         <span className="font-bold">Commentaires :</span>
-                        <div className="min-h-[20px]"></div>
+                        <div className="h-6"></div>
                       </td>
                     </tr>
                   )}
@@ -395,7 +395,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
         </div>
 
         {/* Axes de travail pour la fin de l'année */}
-        <div className="mb-6">
+        <div className="mb-6 print-avoid-break">
           <h3 className="font-bold text-sm mb-2">Axes de travail pour la fin de l'année</h3>
           <table className="border-collapse border border-black text-xs w-full">
             <tbody>
@@ -405,7 +405,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
                 </td>
               </tr>
               <tr>
-                <td className="border border-black p-2 min-h-[60px] whitespace-pre-wrap">
+                <td className="border border-black p-2 whitespace-pre-wrap">
                   {rapport.axes_fin_annee?.a_conforter}
                 </td>
               </tr>
@@ -415,7 +415,7 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
                 </td>
               </tr>
               <tr>
-                <td className="border border-black p-2 min-h-[60px] whitespace-pre-wrap">
+                <td className="border border-black p-2 whitespace-pre-wrap">
                   {rapport.axes_fin_annee?.a_travailler}
                 </td>
               </tr>
@@ -424,19 +424,19 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
         </div>
 
         {/* Signatures */}
-        <div className="mt-8">
+        <div className="mt-8 print-avoid-break">
           <table className="border-collapse border border-black text-xs w-full">
             <tbody>
               <tr>
                 <td className="border border-black p-2 w-1/2">
                   <div>Date : {rapport.signature_tuteur1_date ? new Date(rapport.signature_tuteur1_date).toLocaleDateString('fr-FR') : ''}</div>
                   <div className="mt-4">Signature du ou des tuteurs :</div>
-                  <div className="min-h-[40px]"></div>
+                  <div className="h-12"></div>
                 </td>
                 <td className="border border-black p-2">
                   <div>Date : {rapport.signature_stagiaire_date ? new Date(rapport.signature_stagiaire_date).toLocaleDateString('fr-FR') : ''}</div>
                   <div className="mt-4">Signature de la stagiaire ou du stagiaire :</div>
-                  <div className="min-h-[40px]"></div>
+                  <div className="h-12"></div>
                 </td>
               </tr>
             </tbody>
@@ -449,11 +449,12 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
         @media print {
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 10mm 12mm;
           }
           body {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           .print-container {
             width: 100%;
@@ -462,7 +463,23 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
             display: none !important;
           }
           .print\\:break-before-page {
-            break-before: page;
+            break-before: page !important;
+            page-break-before: always !important;
+          }
+          .print-avoid-break {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          /* Éviter les coupures de lignes de tableau */
+          tr {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          /* S'assurer que le texte s'adapte */
+          td {
+            overflow: visible !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
           }
         }
       `}</style>

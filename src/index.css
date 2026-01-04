@@ -298,3 +298,59 @@ All colors MUST be HSL.
 .highlight-animation {
   animation: highlight 2s ease-out;
 }
+
+/* ========================================
+   STYLES D'IMPRESSION
+   ======================================== */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm 12mm;
+  }
+
+  /* Reset pour l'impression */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    background: white !important;
+  }
+
+  /* Éviter les sauts de page au milieu des éléments */
+  .print-avoid-break,
+  table {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Forcer un saut de page avant */
+  .print-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* Tableaux : éviter les coupures */
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Les cellules doivent s'adapter au contenu */
+  td, th {
+    overflow: visible !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+
+  /* Sections avec titres : garder ensemble */
+  h3, h4 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Masquer les éléments non imprimables */
+  .no-print,
+  .print\\:hidden {
+    display: none !important;
+  }
+}
