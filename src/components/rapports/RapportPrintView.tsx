@@ -337,12 +337,9 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
           })}
         </div>
 
-        {/* Saut de page avant les compétences */}
-        <div className="print:break-before-page"></div>
-
         {/* Synthèse - Compétences */}
         <div className="mb-6">
-          <h3 className="font-bold text-sm mb-1">Synthèse pour la professeure ou le professeur stagiaire</h3>
+          <h3 className="font-bold text-sm mb-1 mt-6">Synthèse pour la professeure ou le professeur stagiaire</h3>
           <p className="text-xs mb-2">
             <strong>à entretenir</strong> : compétence maîtrisée |
             <strong> à travailler encore</strong> : compétence travaillée mais pas suffisamment construite |
