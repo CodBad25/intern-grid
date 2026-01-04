@@ -338,8 +338,8 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
         </div>
 
         {/* Synthèse - Compétences */}
-        <div className="mb-6">
-          <h3 className="font-bold text-sm mb-1 mt-6">Synthèse pour la professeure ou le professeur stagiaire</h3>
+        <div className="mb-6 print-break-before">
+          <h3 className="font-bold text-sm mb-1">Synthèse pour la professeure ou le professeur stagiaire</h3>
           <p className="text-xs mb-2">
             <strong>à entretenir</strong> : compétence maîtrisée |
             <strong> à travailler encore</strong> : compétence travaillée mais pas suffisamment construite |
@@ -466,6 +466,10 @@ export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
           .print-avoid-break {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
+          }
+          .print-break-before {
+            break-before: page !important;
+            page-break-before: always !important;
           }
           /* Éviter les coupures de lignes de tableau */
           tr {
