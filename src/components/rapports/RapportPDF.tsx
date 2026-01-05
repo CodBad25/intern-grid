@@ -58,6 +58,23 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: '#f9fafb',
   },
+  // Tableaux compacts pour axes
+  axeTable: {
+    width: '100%',
+    marginBottom: 6,
+  },
+  axeCell: {
+    border: '1pt solid black',
+    padding: 2,
+    fontSize: 7,
+  },
+  axeCellHeader: {
+    border: '1pt solid black',
+    padding: 2,
+    backgroundColor: '#e5e7eb',
+    fontWeight: 'bold',
+    fontSize: 7,
+  },
   // Grid 3 colonnes
   grid3: {
     flexDirection: 'row',
@@ -256,61 +273,67 @@ const InfoTable = ({ title, rows }: { title: string; rows: { label: string; valu
   </View>
 );
 
-// Composant Axe
-const AxeTable = ({ index, axe }: { index: number; axe: any }) => (
-  <View style={styles.table} wrap={false}>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCellHeader, { width: '100%' }]}>
-        <Text>Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire</Text>
+// Composant Axe (compact = true pour faire tenir 3 axes sur une page)
+const AxeTable = ({ index, axe, compact = false }: { index: number; axe: any; compact?: boolean }) => {
+  const tableStyle = compact ? styles.axeTable : styles.table;
+  const cellStyle = compact ? styles.axeCell : styles.tableCell;
+  const headerStyle = compact ? styles.axeCellHeader : styles.tableCellHeader;
+
+  return (
+    <View style={tableStyle} wrap={false}>
+      <View style={styles.tableRow}>
+        <View style={[headerStyle, { width: '100%' }]}>
+          <Text>Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[cellStyle, { width: '100%' }]}>
+          <Text>{axe?.titre || ''}</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[headerStyle, { width: '100%' }]}>
+          <Text>Constat de départ</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[cellStyle, { width: '100%' }]}>
+          <Text>{axe?.constat_depart || ''}</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[headerStyle, { width: '100%' }]}>
+          <Text>Évolution constatée</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[cellStyle, { width: '100%' }]}>
+          <Text>{axe?.evolution || ''}</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[headerStyle, { width: '100%' }]}>
+          <Text>État des lieux à ce jour</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[cellStyle, { width: '100%' }]}>
+          <Text>{axe?.etat_actuel || ''}</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[headerStyle, { width: '100%' }]}>
+          <Text>Compétences professionnelles du référentiel associées</Text>
+        </View>
+      </View>
+      <View style={styles.tableRow}>
+        <View style={[cellStyle, { width: '100%' }]}>
+          <Text>{axe?.competences || ''}</Text>
+        </View>
       </View>
     </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCell, { width: '100%' }]}>
-        <Text>{axe?.titre || ''}</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCellHeader, { width: '100%' }]}>
-        <Text>Constat de départ</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCell, { width: '100%' }]}>
-        <Text>{axe?.constat_depart || ''}</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCellHeader, { width: '100%' }]}>
-        <Text>Évolution constatée</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCell, { width: '100%' }]}>
-        <Text>{axe?.evolution || ''}</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCellHeader, { width: '100%' }]}>
-        <Text>État des lieux à ce jour</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCell, { width: '100%' }]}>
-        <Text>{axe?.etat_actuel || ''}</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCellHeader, { width: '100%' }]}>
-        <Text>Compétences professionnelles du référentiel associées</Text>
-      </View>
-    </View>
-    <View style={styles.tableRow}>
-      <View style={[styles.tableCell, { width: '100%' }]}>
-        <Text>{axe?.competences || ''}</Text>
-      </View>
-    </View>
-  </View>
-);
+  );
+};
 
 // Composant Section Compétences
 const CompetenceSection = ({ section, rapport }: { section: typeof competencesOfficiel[0]; rapport: any }) => {
@@ -456,15 +479,11 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
       <AxeTable index={0} axe={rapport.axes?.[0]} />
     </Page>
 
-    {/* Page 2 : Axes 2 et 3 */}
+    {/* Page 2 : Axes 2, 3 et 4 (mode compact) */}
     <Page size="A4" style={styles.page}>
-      <AxeTable index={1} axe={rapport.axes?.[1]} />
-      <AxeTable index={2} axe={rapport.axes?.[2]} />
-    </Page>
-
-    {/* Page 3 : Axe 4 */}
-    <Page size="A4" style={styles.page}>
-      <AxeTable index={3} axe={rapport.axes?.[3]} />
+      <AxeTable index={1} axe={rapport.axes?.[1]} compact />
+      <AxeTable index={2} axe={rapport.axes?.[2]} compact />
+      <AxeTable index={3} axe={rapport.axes?.[3]} compact />
     </Page>
 
     {/* Page 3 : Compétences 1-3 */}
