@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Helvetica',
   },
-  // Tableaux compacts pour axes 2, 3, 4 (9pt)
+  // Tableaux compacts pour axes 2, 3, 4 (10pt)
   axeTable: {
     width: '100%',
     marginBottom: 4,
@@ -72,14 +72,14 @@ const styles = StyleSheet.create({
   axeCell: {
     border: '0.5pt solid black',
     padding: 2,
-    fontSize: 9,
+    fontSize: 10,
   },
   axeCellHeader: {
     border: '0.5pt solid black',
     padding: 2,
     backgroundColor: '#e5e7eb',
     fontWeight: 'bold',
-    fontSize: 9,
+    fontSize: 10,
   },
   // Grid 3 colonnes
   grid3: {
