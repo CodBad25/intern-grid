@@ -357,22 +357,69 @@ ${clone.innerHTML}
           </table>
         </div>
 
-        {/* Axes thématiques */}
+        {/* Axes thématiques - Groupe 1 (Axes 1 et 2) */}
         <div className="mb-6">
           <h3 className="font-bold text-sm mb-1">Axes thématiques de formation du premier semestre</h3>
           <p className="text-xs italic mb-2">
-            Identifier et expliciter trois axes thématiques de formation qui ont été prioritairement travaillés
+            Identifier et expliciter les axes thématiques de formation qui ont été prioritairement travaillés
             avec la stagiaire ou le stagiaire sur cette première période.
           </p>
 
-          {[0, 1, 2, 3].map((index) => {
+          {[0, 1].map((index) => {
             const axe = rapport.axes?.[index] || {};
             return (
-              <table key={index} className="border-collapse border border-black text-xs w-full mb-4 print-avoid-break">
+              <table key={index} className="border-collapse border border-black text-xs w-full mb-4">
                 <tbody>
                   <tr>
                     <td className="border border-black p-1 font-bold bg-gray-100">
-                      Axe de formation travaillé avec la stagiaire ou le stagiaire
+                      Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-2">{axe.titre}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 font-bold bg-gray-100">Constat de départ</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.constat_depart}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 font-bold bg-gray-100">Évolution constatée</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.evolution}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 font-bold bg-gray-100">État des lieux à ce jour</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.etat_actuel}</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-1 font-bold bg-gray-100">
+                      Compétences professionnelles du référentiel associées
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-black p-2">{axe.competences}</td>
+                  </tr>
+                </tbody>
+              </table>
+            );
+          })}
+        </div>
+
+        {/* Axes thématiques - Groupe 2 (Axes 3 et 4) - Nouvelle page */}
+        <div className="mb-6 print-break-before">
+          {[2, 3].map((index) => {
+            const axe = rapport.axes?.[index] || {};
+            return (
+              <table key={index} className="border-collapse border border-black text-xs w-full mb-4">
+                <tbody>
+                  <tr>
+                    <td className="border border-black p-1 font-bold bg-gray-100">
+                      Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire
                     </td>
                   </tr>
                   <tr>
