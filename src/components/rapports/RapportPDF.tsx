@@ -58,22 +58,22 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: '#f9fafb',
   },
-  // Tableaux compacts pour axes
+  // Tableaux compacts pour axes 2, 3, 4
   axeTable: {
     width: '100%',
-    marginBottom: 6,
+    marginBottom: 5,
   },
   axeCell: {
     border: '1pt solid black',
-    padding: 2,
-    fontSize: 7,
+    padding: 3,
+    fontSize: 8,
   },
   axeCellHeader: {
     border: '1pt solid black',
-    padding: 2,
+    padding: 3,
     backgroundColor: '#e5e7eb',
     fontWeight: 'bold',
-    fontSize: 7,
+    fontSize: 8,
   },
   // Grid 3 colonnes
   grid3: {
