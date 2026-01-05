@@ -1,4 +1,6 @@
 import React from 'react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { RapportPDF } from './RapportPDF';
 
 interface RapportPrintViewProps {
   rapport: any;
@@ -255,11 +257,18 @@ ${clone.innerHTML}
     <div className="print-container">
       {/* Boutons (masqués à l'impression) */}
       <div className="print:hidden fixed top-4 right-4 flex gap-2 z-50">
-        <button
-          onClick={handlePrint}
+        <PDFDownloadLink
+          document={<RapportPDF rapport={rapport} />}
+          fileName={`Rapport_${rapport.stagiaire_nom}_${rapport.stagiaire_prenom}_${rapport.annee_scolaire || '2025-2026'}.pdf`}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
         >
-          Imprimer / PDF
+          {({ loading }) => (loading ? 'Génération...' : 'Télécharger PDF')}
+        </PDFDownloadLink>
+        <button
+          onClick={handlePrint}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Imprimer
         </button>
         <button
           onClick={handleExportHTML}
