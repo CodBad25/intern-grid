@@ -352,13 +352,13 @@ const CompetenceSection = ({ section, rapport }: { section: typeof competencesOf
               <Text>{item.label}</Text>
             </View>
             <View style={styles.competenceCheck}>
-              <Text>{isEntretenir ? '✓' : ''}</Text>
+              <Text>{isEntretenir ? 'X' : ''}</Text>
             </View>
             <View style={styles.competenceCheck}>
-              <Text>{isTravailler ? '✓' : ''}</Text>
+              <Text>{isTravailler ? 'X' : ''}</Text>
             </View>
             <View style={styles.competenceCheck}>
-              <Text>{isInvestir ? '✓' : ''}</Text>
+              <Text>{isInvestir ? 'X' : ''}</Text>
             </View>
           </View>
         );
@@ -456,9 +456,13 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
       <AxeTable index={0} axe={rapport.axes?.[0]} />
     </Page>
 
-    {/* Page 2 : Axes 2, 3, 4 */}
+    {/* Page 2 : Axe 2 */}
     <Page size="A4" style={styles.page}>
       <AxeTable index={1} axe={rapport.axes?.[1]} />
+    </Page>
+
+    {/* Page 3 : Axes 3 et 4 */}
+    <Page size="A4" style={styles.page}>
       <AxeTable index={2} axe={rapport.axes?.[2]} />
       <AxeTable index={3} axe={rapport.axes?.[3]} />
     </Page>
