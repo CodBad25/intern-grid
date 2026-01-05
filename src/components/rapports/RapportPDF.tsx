@@ -479,11 +479,15 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
       <AxeTable index={0} axe={rapport.axes?.[0]} />
     </Page>
 
-    {/* Page 2 : Axes 2, 3 et 4 (mode compact) */}
+    {/* Page 2 : Axes 2 et 3 */}
     <Page size="A4" style={styles.page}>
-      <AxeTable index={1} axe={rapport.axes?.[1]} compact />
-      <AxeTable index={2} axe={rapport.axes?.[2]} compact />
-      <AxeTable index={3} axe={rapport.axes?.[3]} compact />
+      <AxeTable index={1} axe={rapport.axes?.[1]} />
+      <AxeTable index={2} axe={rapport.axes?.[2]} />
+    </Page>
+
+    {/* Page 3 : Axe 4 */}
+    <Page size="A4" style={styles.page}>
+      <AxeTable index={3} axe={rapport.axes?.[3]} />
     </Page>
 
     {/* Page 3 : Compétences 1-3 */}
