@@ -60,26 +60,26 @@ const styles = StyleSheet.create({
   },
   // Page avec marges réduites pour axes 2, 3, 4
   pageAxes: {
-    padding: 20,
+    padding: 15,
     fontSize: 9,
     fontFamily: 'Helvetica',
   },
-  // Tableaux compacts pour axes 2, 3, 4 (10pt)
+  // Tableaux compacts pour axes 2, 3, 4 (9pt)
   axeTable: {
     width: '100%',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   axeCell: {
-    border: '1pt solid black',
-    padding: 3,
-    fontSize: 10,
+    border: '0.5pt solid black',
+    padding: 2,
+    fontSize: 9,
   },
   axeCellHeader: {
-    border: '1pt solid black',
-    padding: 3,
+    border: '0.5pt solid black',
+    padding: 2,
     backgroundColor: '#e5e7eb',
     fontWeight: 'bold',
-    fontSize: 10,
+    fontSize: 9,
   },
   // Grid 3 colonnes
   grid3: {
