@@ -58,22 +58,22 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: '#f9fafb',
   },
-  // Tableaux compacts pour axes 2, 3, 4
+  // Tableaux compacts pour axes 2, 3, 4 (10pt)
   axeTable: {
     width: '100%',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   axeCell: {
     border: '1pt solid black',
-    padding: 3,
-    fontSize: 8,
+    padding: 4,
+    fontSize: 10,
   },
   axeCellHeader: {
     border: '1pt solid black',
-    padding: 3,
+    padding: 4,
     backgroundColor: '#e5e7eb',
     fontWeight: 'bold',
-    fontSize: 8,
+    fontSize: 10,
   },
   // Grid 3 colonnes
   grid3: {
@@ -479,15 +479,11 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
       <AxeTable index={0} axe={rapport.axes?.[0]} />
     </Page>
 
-    {/* Page 2 : Axes 2 et 3 */}
+    {/* Page 2 : Axes 2, 3 et 4 (10pt) */}
     <Page size="A4" style={styles.page}>
-      <AxeTable index={1} axe={rapport.axes?.[1]} />
-      <AxeTable index={2} axe={rapport.axes?.[2]} />
-    </Page>
-
-    {/* Page 3 : Axe 4 */}
-    <Page size="A4" style={styles.page}>
-      <AxeTable index={3} axe={rapport.axes?.[3]} />
+      <AxeTable index={1} axe={rapport.axes?.[1]} compact />
+      <AxeTable index={2} axe={rapport.axes?.[2]} compact />
+      <AxeTable index={3} axe={rapport.axes?.[3]} compact />
     </Page>
 
     {/* Page 3 : Compétences 1-3 */}

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test tailles police - Axes 2, 3, 4</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+
+    h1 { margin-bottom: 20px; }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      background: white;
+      padding: 10mm 12mm;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .page::after {
+      content: attr(data-size);
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: #3b82f6;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .page-marker {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: red;
+    }
+
+    .page-marker-label {
+      position: absolute;
+      bottom: 5px;
+      right: 10px;
+      color: red;
+      font-size: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+    }
+
+    td {
+      border: 1px solid black;
+      padding: 3px 4px;
+    }
+
+    .header {
+      background: #e5e7eb;
+      font-weight: bold;
+    }
+
+    /* Différentes tailles */
+    .size-10 { font-size: 10pt; }
+    .size-9 { font-size: 9pt; }
+    .size-85 { font-size: 8.5pt; }
+    .size-8 { font-size: 8pt; }
+    .size-75 { font-size: 7.5pt; }
+    .size-7 { font-size: 7pt; }
+
+    .size-10 td { padding: 4px 5px; }
+    .size-9 td { padding: 3px 4px; }
+    .size-85 td { padding: 3px 4px; }
+    .size-8 td { padding: 2px 3px; }
+    .size-75 td { padding: 2px 3px; }
+    .size-7 td { padding: 2px 3px; }
+
+    .size-10 table { margin-bottom: 10px; }
+    .size-9 table { margin-bottom: 8px; }
+    .size-85 table { margin-bottom: 7px; }
+    .size-8 table { margin-bottom: 6px; }
+    .size-75 table { margin-bottom: 5px; }
+    .size-7 table { margin-bottom: 4px; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; margin: 0; page-break-after: always; }
+      h1, .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Test des tailles de police pour axes 2, 3, 4 sur une page A4</h1>
+  <p class="no-print" style="margin-bottom: 20px; color: #666;">
+    Chaque cadre représente une page A4 (210mm x 297mm). La ligne rouge en bas indique la limite de la page.
+  </p>
+
+  <!-- 10pt -->
+  <div class="page size-10" data-size="10pt">
+    <table><tr><td class="header">Axe 2 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Animer des situations d'apprentissage prenant en compte la diversité des élèves</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Dès le premier mois, Mme Viot a établi une relation de confiance avec ses élèves, de la classe de 6ème comme de la classe de 4ème et a cherché à s'adapter à leur diversité, y compris avec une classe plus difficile. Il lui est cependant parfois difficile de réguler les interventions intempestives de certains élèves ou au contraire de solliciter davantage la curiosité et l'implication d'autres. Notre travail ensemble consiste à progresser sur l'encadrement et la motivation des élèves.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Face aux difficultés rencontrées avec les élèves de 4ème notamment sur la gestion du groupe, Mme Viot a su coopérer avec l'ensemble de l'équipe pédagogique de cette classe et mettre en application, auprès des élèves perturbateurs, les règles du système éducatif afin de rappeler aux élèves le cadre réglementaire de l'école. Soucieuse de la réussite de tous ses élèves, Mme Viot adapte ses productions pour les élèves en difficulté et a plusieurs fois organisé de la remédiation pour ceux qui en avait le plus besoin.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Mme Viot a cherché à faire évoluer sa pratique de gestion des groupes classe en recherchant à structurer mieux ses séances, en précisant les objectifs de la séance, et en progressant sur la mise en activité de tous les élèves. Le travail se poursuivra en maintenant la recherche d'adaptation du cours à tous les profils, et en adaptant encore la posture enseignante lors des activités en autonomie.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3 – P4 – CC3– CC4</td></tr></table>
+
+    <table><tr><td class="header">Axe 3 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Structurer la trace écrite et les corrections pour favoriser l'apprentissage</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Cherchant à appliquer les recommandations de ses tuteurs, Madame Viot a fait en sorte que ses corrections soient plus explicites et détaillées mais prenaient beaucoup de temps, sans que leur utilité pour les élèves soit toujours claire. L'organisation spatiale du tableau (emplacement des réponses, titres des activités) manquait de structure visible.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a pris conscience de l'importance de structurer le tableau et de questionner l'utilité de chaque élément de la trace écrite. Elle veille désormais à afficher les énoncés et à noter les titres des activités.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Madame Viot est consciente des enjeux liés à la trace écrite. Les habitudes qu'elle a commencé à mettre en place pour la structure du tableau et des traces à laisser dans les cahiers des élèves sont de bon augure. Le travail se poursuivra sur l'optimisation du temps de correction et la clarté de l'écriture au tableau.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3, P4</td></tr></table>
+
+    <table><tr><td class="header">Axe 4 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Vérifier la compréhension de tous les élèves et adapter son enseignement</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Madame Viot faisait preuve d'une réelle attention envers ses élèves et n'hésitait pas à les solliciter. Les échanges avaient cependant tendance à se concentrer sur quelques élèves, et les questions de vérification restaient parfois générales sans permettre de s'assurer de la compréhension effective de l'ensemble du groupe.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a intégré l'importance de solliciter la classe entière et de diversifier les modalités d'interaction. Elle utilise désormais des techniques comme la reformulation par les élèves ou l'interrogation ciblée, ce qui favorise une meilleure implication du groupe.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Madame Viot est désormais consciente de l'importance de solliciter l'ensemble du groupe classe et de l'importance de diversifier ses modalités d'interaction. Cette compétence est en cours d'acquisition et pourra être renforcée en poursuivant ce travail dans les prochains mois.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P2,P3</td></tr></table>
+    <div class="page-marker"></div>
+  </div>
+
+  <!-- 9pt -->
+  <div class="page size-9" data-size="9pt">
+    <table><tr><td class="header">Axe 2 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Animer des situations d'apprentissage prenant en compte la diversité des élèves</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Dès le premier mois, Mme Viot a établi une relation de confiance avec ses élèves, de la classe de 6ème comme de la classe de 4ème et a cherché à s'adapter à leur diversité, y compris avec une classe plus difficile. Il lui est cependant parfois difficile de réguler les interventions intempestives de certains élèves ou au contraire de solliciter davantage la curiosité et l'implication d'autres. Notre travail ensemble consiste à progresser sur l'encadrement et la motivation des élèves.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Face aux difficultés rencontrées avec les élèves de 4ème notamment sur la gestion du groupe, Mme Viot a su coopérer avec l'ensemble de l'équipe pédagogique de cette classe et mettre en application, auprès des élèves perturbateurs, les règles du système éducatif afin de rappeler aux élèves le cadre réglementaire de l'école. Soucieuse de la réussite de tous ses élèves, Mme Viot adapte ses productions pour les élèves en difficulté et a plusieurs fois organisé de la remédiation pour ceux qui en avait le plus besoin.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Mme Viot a cherché à faire évoluer sa pratique de gestion des groupes classe en recherchant à structurer mieux ses séances, en précisant les objectifs de la séance, et en progressant sur la mise en activité de tous les élèves. Le travail se poursuivra en maintenant la recherche d'adaptation du cours à tous les profils, et en adaptant encore la posture enseignante lors des activités en autonomie.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3 – P4 – CC3– CC4</td></tr></table>
+
+    <table><tr><td class="header">Axe 3 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Structurer la trace écrite et les corrections pour favoriser l'apprentissage</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Cherchant à appliquer les recommandations de ses tuteurs, Madame Viot a fait en sorte que ses corrections soient plus explicites et détaillées mais prenaient beaucoup de temps, sans que leur utilité pour les élèves soit toujours claire. L'organisation spatiale du tableau (emplacement des réponses, titres des activités) manquait de structure visible.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a pris conscience de l'importance de structurer le tableau et de questionner l'utilité de chaque élément de la trace écrite. Elle veille désormais à afficher les énoncés et à noter les titres des activités.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Madame Viot est consciente des enjeux liés à la trace écrite. Les habitudes qu'elle a commencé à mettre en place pour la structure du tableau et des traces à laisser dans les cahiers des élèves sont de bon augure. Le travail se poursuivra sur l'optimisation du temps de correction et la clarté de l'écriture au tableau.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3, P4</td></tr></table>
+
+    <table><tr><td class="header">Axe 4 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Vérifier la compréhension de tous les élèves et adapter son enseignement</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Madame Viot faisait preuve d'une réelle attention envers ses élèves et n'hésitait pas à les solliciter. Les échanges avaient cependant tendance à se concentrer sur quelques élèves, et les questions de vérification restaient parfois générales sans permettre de s'assurer de la compréhension effective de l'ensemble du groupe.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a intégré l'importance de solliciter la classe entière et de diversifier les modalités d'interaction. Elle utilise désormais des techniques comme la reformulation par les élèves ou l'interrogation ciblée, ce qui favorise une meilleure implication du groupe.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Madame Viot est désormais consciente de l'importance de solliciter l'ensemble du groupe classe et de l'importance de diversifier ses modalités d'interaction. Cette compétence est en cours d'acquisition et pourra être renforcée en poursuivant ce travail dans les prochains mois.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P2,P3</td></tr></table>
+    <div class="page-marker"></div>
+  </div>
+
+  <!-- 8.5pt -->
+  <div class="page size-85" data-size="8.5pt">
+    <table><tr><td class="header">Axe 2 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Animer des situations d'apprentissage prenant en compte la diversité des élèves</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Dès le premier mois, Mme Viot a établi une relation de confiance avec ses élèves, de la classe de 6ème comme de la classe de 4ème et a cherché à s'adapter à leur diversité, y compris avec une classe plus difficile. Il lui est cependant parfois difficile de réguler les interventions intempestives de certains élèves ou au contraire de solliciter davantage la curiosité et l'implication d'autres. Notre travail ensemble consiste à progresser sur l'encadrement et la motivation des élèves.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Face aux difficultés rencontrées avec les élèves de 4ème notamment sur la gestion du groupe, Mme Viot a su coopérer avec l'ensemble de l'équipe pédagogique de cette classe et mettre en application, auprès des élèves perturbateurs, les règles du système éducatif afin de rappeler aux élèves le cadre réglementaire de l'école. Soucieuse de la réussite de tous ses élèves, Mme Viot adapte ses productions pour les élèves en difficulté et a plusieurs fois organisé de la remédiation pour ceux qui en avait le plus besoin.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Mme Viot a cherché à faire évoluer sa pratique de gestion des groupes classe en recherchant à structurer mieux ses séances, en précisant les objectifs de la séance, et en progressant sur la mise en activité de tous les élèves. Le travail se poursuivra en maintenant la recherche d'adaptation du cours à tous les profils, et en adaptant encore la posture enseignante lors des activités en autonomie.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3 – P4 – CC3– CC4</td></tr></table>
+
+    <table><tr><td class="header">Axe 3 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Structurer la trace écrite et les corrections pour favoriser l'apprentissage</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Cherchant à appliquer les recommandations de ses tuteurs, Madame Viot a fait en sorte que ses corrections soient plus explicites et détaillées mais prenaient beaucoup de temps, sans que leur utilité pour les élèves soit toujours claire. L'organisation spatiale du tableau (emplacement des réponses, titres des activités) manquait de structure visible.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a pris conscience de l'importance de structurer le tableau et de questionner l'utilité de chaque élément de la trace écrite. Elle veille désormais à afficher les énoncés et à noter les titres des activités.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Madame Viot est consciente des enjeux liés à la trace écrite. Les habitudes qu'elle a commencé à mettre en place pour la structure du tableau et des traces à laisser dans les cahiers des élèves sont de bon augure. Le travail se poursuivra sur l'optimisation du temps de correction et la clarté de l'écriture au tableau.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3, P4</td></tr></table>
+
+    <table><tr><td class="header">Axe 4 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Vérifier la compréhension de tous les élèves et adapter son enseignement</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Madame Viot faisait preuve d'une réelle attention envers ses élèves et n'hésitait pas à les solliciter. Les échanges avaient cependant tendance à se concentrer sur quelques élèves, et les questions de vérification restaient parfois générales sans permettre de s'assurer de la compréhension effective de l'ensemble du groupe.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a intégré l'importance de solliciter la classe entière et de diversifier les modalités d'interaction. Elle utilise désormais des techniques comme la reformulation par les élèves ou l'interrogation ciblée, ce qui favorise une meilleure implication du groupe.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Madame Viot est désormais consciente de l'importance de solliciter l'ensemble du groupe classe et de l'importance de diversifier ses modalités d'interaction. Cette compétence est en cours d'acquisition et pourra être renforcée en poursuivant ce travail dans les prochains mois.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P2,P3</td></tr></table>
+    <div class="page-marker"></div>
+  </div>
+
+  <!-- 8pt -->
+  <div class="page size-8" data-size="8pt">
+    <table><tr><td class="header">Axe 2 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Animer des situations d'apprentissage prenant en compte la diversité des élèves</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Dès le premier mois, Mme Viot a établi une relation de confiance avec ses élèves, de la classe de 6ème comme de la classe de 4ème et a cherché à s'adapter à leur diversité, y compris avec une classe plus difficile. Il lui est cependant parfois difficile de réguler les interventions intempestives de certains élèves ou au contraire de solliciter davantage la curiosité et l'implication d'autres. Notre travail ensemble consiste à progresser sur l'encadrement et la motivation des élèves.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Face aux difficultés rencontrées avec les élèves de 4ème notamment sur la gestion du groupe, Mme Viot a su coopérer avec l'ensemble de l'équipe pédagogique de cette classe et mettre en application, auprès des élèves perturbateurs, les règles du système éducatif afin de rappeler aux élèves le cadre réglementaire de l'école. Soucieuse de la réussite de tous ses élèves, Mme Viot adapte ses productions pour les élèves en difficulté et a plusieurs fois organisé de la remédiation pour ceux qui en avait le plus besoin.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Mme Viot a cherché à faire évoluer sa pratique de gestion des groupes classe en recherchant à structurer mieux ses séances, en précisant les objectifs de la séance, et en progressant sur la mise en activité de tous les élèves. Le travail se poursuivra en maintenant la recherche d'adaptation du cours à tous les profils, et en adaptant encore la posture enseignante lors des activités en autonomie.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3 – P4 – CC3– CC4</td></tr></table>
+
+    <table><tr><td class="header">Axe 3 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Structurer la trace écrite et les corrections pour favoriser l'apprentissage</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Cherchant à appliquer les recommandations de ses tuteurs, Madame Viot a fait en sorte que ses corrections soient plus explicites et détaillées mais prenaient beaucoup de temps, sans que leur utilité pour les élèves soit toujours claire. L'organisation spatiale du tableau (emplacement des réponses, titres des activités) manquait de structure visible.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a pris conscience de l'importance de structurer le tableau et de questionner l'utilité de chaque élément de la trace écrite. Elle veille désormais à afficher les énoncés et à noter les titres des activités.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Madame Viot est consciente des enjeux liés à la trace écrite. Les habitudes qu'elle a commencé à mettre en place pour la structure du tableau et des traces à laisser dans les cahiers des élèves sont de bon augure. Le travail se poursuivra sur l'optimisation du temps de correction et la clarté de l'écriture au tableau.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3, P4</td></tr></table>
+
+    <table><tr><td class="header">Axe 4 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Vérifier la compréhension de tous les élèves et adapter son enseignement</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Madame Viot faisait preuve d'une réelle attention envers ses élèves et n'hésitait pas à les solliciter. Les échanges avaient cependant tendance à se concentrer sur quelques élèves, et les questions de vérification restaient parfois générales sans permettre de s'assurer de la compréhension effective de l'ensemble du groupe.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a intégré l'importance de solliciter la classe entière et de diversifier les modalités d'interaction. Elle utilise désormais des techniques comme la reformulation par les élèves ou l'interrogation ciblée, ce qui favorise une meilleure implication du groupe.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Madame Viot est désormais consciente de l'importance de solliciter l'ensemble du groupe classe et de l'importance de diversifier ses modalités d'interaction. Cette compétence est en cours d'acquisition et pourra être renforcée en poursuivant ce travail dans les prochains mois.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P2,P3</td></tr></table>
+    <div class="page-marker"></div>
+  </div>
+
+  <!-- 7.5pt -->
+  <div class="page size-75" data-size="7.5pt">
+    <table><tr><td class="header">Axe 2 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Animer des situations d'apprentissage prenant en compte la diversité des élèves</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Dès le premier mois, Mme Viot a établi une relation de confiance avec ses élèves, de la classe de 6ème comme de la classe de 4ème et a cherché à s'adapter à leur diversité, y compris avec une classe plus difficile. Il lui est cependant parfois difficile de réguler les interventions intempestives de certains élèves ou au contraire de solliciter davantage la curiosité et l'implication d'autres. Notre travail ensemble consiste à progresser sur l'encadrement et la motivation des élèves.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Face aux difficultés rencontrées avec les élèves de 4ème notamment sur la gestion du groupe, Mme Viot a su coopérer avec l'ensemble de l'équipe pédagogique de cette classe et mettre en application, auprès des élèves perturbateurs, les règles du système éducatif afin de rappeler aux élèves le cadre réglementaire de l'école. Soucieuse de la réussite de tous ses élèves, Mme Viot adapte ses productions pour les élèves en difficulté et a plusieurs fois organisé de la remédiation pour ceux qui en avait le plus besoin.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Mme Viot a cherché à faire évoluer sa pratique de gestion des groupes classe en recherchant à structurer mieux ses séances, en précisant les objectifs de la séance, et en progressant sur la mise en activité de tous les élèves. Le travail se poursuivra en maintenant la recherche d'adaptation du cours à tous les profils, et en adaptant encore la posture enseignante lors des activités en autonomie.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3 – P4 – CC3– CC4</td></tr></table>
+
+    <table><tr><td class="header">Axe 3 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Structurer la trace écrite et les corrections pour favoriser l'apprentissage</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Cherchant à appliquer les recommandations de ses tuteurs, Madame Viot a fait en sorte que ses corrections soient plus explicites et détaillées mais prenaient beaucoup de temps, sans que leur utilité pour les élèves soit toujours claire. L'organisation spatiale du tableau (emplacement des réponses, titres des activités) manquait de structure visible.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a pris conscience de l'importance de structurer le tableau et de questionner l'utilité de chaque élément de la trace écrite. Elle veille désormais à afficher les énoncés et à noter les titres des activités.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Compétence en cours d'acquisition. Madame Viot est consciente des enjeux liés à la trace écrite. Les habitudes qu'elle a commencé à mettre en place pour la structure du tableau et des traces à laisser dans les cahiers des élèves sont de bon augure. Le travail se poursuivra sur l'optimisation du temps de correction et la clarté de l'écriture au tableau.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P3, P4</td></tr></table>
+
+    <table><tr><td class="header">Axe 4 de formation travaillé avec la stagiaire ou le stagiaire</td></tr><tr><td>Vérifier la compréhension de tous les élèves et adapter son enseignement</td></tr><tr><td class="header">Constat de départ</td></tr><tr><td>Madame Viot faisait preuve d'une réelle attention envers ses élèves et n'hésitait pas à les solliciter. Les échanges avaient cependant tendance à se concentrer sur quelques élèves, et les questions de vérification restaient parfois générales sans permettre de s'assurer de la compréhension effective de l'ensemble du groupe.</td></tr><tr><td class="header">Évolution constatée</td></tr><tr><td>Madame Viot a intégré l'importance de solliciter la classe entière et de diversifier les modalités d'interaction. Elle utilise désormais des techniques comme la reformulation par les élèves ou l'interrogation ciblée, ce qui favorise une meilleure implication du groupe.</td></tr><tr><td class="header">État des lieux à ce jour</td></tr><tr><td>Madame Viot est désormais consciente de l'importance de solliciter l'ensemble du groupe classe et de l'importance de diversifier ses modalités d'interaction. Cette compétence est en cours d'acquisition et pourra être renforcée en poursuivant ce travail dans les prochains mois.</td></tr><tr><td class="header">Compétences professionnelles du référentiel associées</td></tr><tr><td>P2,P3</td></tr></table>
+    <div class="page-marker"></div>
+  </div>
+
+</body>
+</html>
