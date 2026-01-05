@@ -456,14 +456,14 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
       <AxeTable index={0} axe={rapport.axes?.[0]} />
     </Page>
 
-    {/* Page 2 : Axe 2 */}
+    {/* Page 2 : Axes 2 et 3 */}
     <Page size="A4" style={styles.page}>
       <AxeTable index={1} axe={rapport.axes?.[1]} />
+      <AxeTable index={2} axe={rapport.axes?.[2]} />
     </Page>
 
-    {/* Page 3 : Axes 3 et 4 */}
+    {/* Page 3 : Axe 4 */}
     <Page size="A4" style={styles.page}>
-      <AxeTable index={2} axe={rapport.axes?.[2]} />
       <AxeTable index={3} axe={rapport.axes?.[3]} />
     </Page>
 
