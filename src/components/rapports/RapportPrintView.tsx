@@ -368,41 +368,41 @@ ${clone.innerHTML}
           {[0, 1].map((index) => {
             const axe = rapport.axes?.[index] || {};
             return (
-              <table key={index} className="border-collapse border border-black text-xs w-full mb-4">
+              <table key={index} className="border-collapse border border-black text-[10px] w-full mb-2">
                 <tbody>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">
                       Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2">{axe.titre}</td>
+                    <td className="border border-black p-1">{axe.titre}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">Constat de départ</td>
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">Constat de départ</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.constat_depart}</td>
+                    <td className="border border-black p-1 whitespace-pre-wrap">{axe.constat_depart}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">Évolution constatée</td>
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">Évolution constatée</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.evolution}</td>
+                    <td className="border border-black p-1 whitespace-pre-wrap">{axe.evolution}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">État des lieux à ce jour</td>
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">État des lieux à ce jour</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.etat_actuel}</td>
+                    <td className="border border-black p-1 whitespace-pre-wrap">{axe.etat_actuel}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">
                       Compétences professionnelles du référentiel associées
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2">{axe.competences}</td>
+                    <td className="border border-black p-1">{axe.competences}</td>
                   </tr>
                 </tbody>
               </table>
@@ -415,41 +415,41 @@ ${clone.innerHTML}
           {[2, 3].map((index) => {
             const axe = rapport.axes?.[index] || {};
             return (
-              <table key={index} className="border-collapse border border-black text-xs w-full mb-4">
+              <table key={index} className="border-collapse border border-black text-[10px] w-full mb-2">
                 <tbody>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">
                       Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2">{axe.titre}</td>
+                    <td className="border border-black p-1">{axe.titre}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">Constat de départ</td>
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">Constat de départ</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.constat_depart}</td>
+                    <td className="border border-black p-1 whitespace-pre-wrap">{axe.constat_depart}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">Évolution constatée</td>
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">Évolution constatée</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.evolution}</td>
+                    <td className="border border-black p-1 whitespace-pre-wrap">{axe.evolution}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">État des lieux à ce jour</td>
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">État des lieux à ce jour</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2 whitespace-pre-wrap">{axe.etat_actuel}</td>
+                    <td className="border border-black p-1 whitespace-pre-wrap">{axe.etat_actuel}</td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-1 font-bold bg-gray-100">
+                    <td className="border border-black p-0.5 font-bold bg-gray-100">
                       Compétences professionnelles du référentiel associées
                     </td>
                   </tr>
                   <tr>
-                    <td className="border border-black p-2">{axe.competences}</td>
+                    <td className="border border-black p-1">{axe.competences}</td>
                   </tr>
                 </tbody>
               </table>
