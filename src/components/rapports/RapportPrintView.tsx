@@ -410,9 +410,9 @@ ${clone.innerHTML}
           })()}
         </div>
 
-        {/* Axes 2 et 3 - Nouvelle page */}
+        {/* Axe 2 - Nouvelle page */}
         <div className="mb-4 print-break-before">
-          {[1, 2].map((index) => {
+          {[1].map((index) => {
             const axe = rapport.axes?.[index] || {};
             return (
               <table key={index} className="border-collapse border border-black text-[10px] w-full mb-2">
@@ -457,16 +457,16 @@ ${clone.innerHTML}
           })}
         </div>
 
-        {/* Axe 4 - Nouvelle page */}
+        {/* Axes 3 et 4 - Nouvelle page */}
         <div className="mb-4 print-break-before">
-          {(() => {
-            const axe = rapport.axes?.[3] || {};
+          {[2, 3].map((index) => {
+            const axe = rapport.axes?.[index] || {};
             return (
-              <table className="border-collapse border border-black text-[10px] w-full mb-2">
+              <table key={index} className="border-collapse border border-black text-[10px] w-full mb-2">
                 <tbody>
                   <tr>
                     <td className="border border-black p-0.5 font-bold bg-gray-100">
-                      Axe 4 de formation travaillé avec la stagiaire ou le stagiaire
+                      Axe {index + 1} de formation travaillé avec la stagiaire ou le stagiaire
                     </td>
                   </tr>
                   <tr>
@@ -501,7 +501,7 @@ ${clone.innerHTML}
                 </tbody>
               </table>
             );
-          })()}
+          })}
         </div>
 
         {/* Synthèse - Compétences */}
