@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import {
@@ -215,6 +214,46 @@ function TuteurAvisRow({
   );
 }
 
+// Composant pour le champ commentaire (non-contrôlé pour éviter le scroll)
+function CommentaireField({
+  categoryId,
+  value,
+  onChange,
+}: {
+  categoryId: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Synchroniser la valeur initiale
+  useEffect(() => {
+    if (textareaRef.current && textareaRef.current.value !== value) {
+      textareaRef.current.value = value || '';
+    }
+  }, [value]);
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <Label htmlFor={`commentaire-${categoryId}`} className="text-sm font-medium">
+        Commentaires
+      </Label>
+      <textarea
+        ref={textareaRef}
+        id={`commentaire-${categoryId}`}
+        defaultValue={value || ''}
+        onBlur={() => {
+          if (textareaRef.current) {
+            onChange(textareaRef.current.value);
+          }
+        }}
+        placeholder="Ajouter un commentaire pour cette section..."
+        className="mt-2 min-h-[80px] flex w-full rounded-md border border-input bg-white dark:bg-gray-800 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+      />
+    </div>
+  );
+}
+
 // Composant pour afficher le statut de consensus
 function ConsensusStatus({ itemValue }: { itemValue: any }) {
   const tuteur1Value = itemValue?.tuteur1;
@@ -365,18 +404,11 @@ export function CompetenceGrid({
               ))}
 
               {/* Champ commentaire pour cette catégorie */}
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Label htmlFor={`commentaire-${category.id}`} className="text-sm font-medium">
-                  Commentaires
-                </Label>
-                <Textarea
-                  id={`commentaire-${category.id}`}
-                  placeholder="Ajouter un commentaire pour cette section..."
-                  value={categoryData.commentaire || ''}
-                  onChange={(e) => onChange(category.id, 'commentaire', e.target.value)}
-                  className="mt-2 min-h-[80px]"
-                />
-              </div>
+              <CommentaireField
+                categoryId={category.id}
+                value={categoryData.commentaire || ''}
+                onChange={(value) => onChange(category.id, 'commentaire', value)}
+              />
             </CardContent>
           </Card>
         );
