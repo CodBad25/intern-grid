@@ -365,7 +365,7 @@ ${clone.innerHTML}
             avec la stagiaire ou le stagiaire sur cette première période.
           </p>
 
-          {[0, 1, 2].map((index) => {
+          {[0, 1, 2, 3].map((index) => {
             const axe = rapport.axes?.[index] || {};
             return (
               <table key={index} className="border-collapse border border-black text-xs w-full mb-4 print-avoid-break">
