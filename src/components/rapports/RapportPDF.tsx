@@ -58,19 +58,25 @@ const styles = StyleSheet.create({
     padding: 4,
     backgroundColor: '#f9fafb',
   },
+  // Page avec marges réduites pour axes 2, 3, 4
+  pageAxes: {
+    padding: 20,
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+  },
   // Tableaux compacts pour axes 2, 3, 4 (10pt)
   axeTable: {
     width: '100%',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   axeCell: {
     border: '1pt solid black',
-    padding: 4,
+    padding: 3,
     fontSize: 10,
   },
   axeCellHeader: {
     border: '1pt solid black',
-    padding: 4,
+    padding: 3,
     backgroundColor: '#e5e7eb',
     fontWeight: 'bold',
     fontSize: 10,
@@ -479,8 +485,8 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
       <AxeTable index={0} axe={rapport.axes?.[0]} />
     </Page>
 
-    {/* Page 2 : Axes 2, 3 et 4 (10pt) */}
-    <Page size="A4" style={styles.page}>
+    {/* Page 2 : Axes 2, 3 et 4 (10pt, marges réduites) */}
+    <Page size="A4" style={styles.pageAxes}>
       <AxeTable index={1} axe={rapport.axes?.[1]} compact />
       <AxeTable index={2} axe={rapport.axes?.[2]} compact />
       <AxeTable index={3} axe={rapport.axes?.[3]} compact />
