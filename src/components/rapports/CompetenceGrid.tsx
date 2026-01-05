@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import {
@@ -362,6 +363,20 @@ export function CompetenceGrid({
                   tuteurProfiles={tuteurProfiles}
                 />
               ))}
+
+              {/* Champ commentaire pour cette catégorie */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Label htmlFor={`commentaire-${category.id}`} className="text-sm font-medium">
+                  Commentaires
+                </Label>
+                <Textarea
+                  id={`commentaire-${category.id}`}
+                  placeholder="Ajouter un commentaire pour cette section..."
+                  value={categoryData.commentaire || ''}
+                  onChange={(e) => onChange(category.id, 'commentaire', e.target.value)}
+                  className="mt-2 min-h-[80px]"
+                />
+              </div>
             </CardContent>
           </Card>
         );

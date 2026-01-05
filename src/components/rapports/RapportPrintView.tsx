@@ -514,38 +514,46 @@ ${clone.innerHTML}
           </p>
 
           {/* Un tableau par section pour éviter les sauts de page hasardeux */}
-          {competencesOfficiel.map((section, sectionIndex) => (
-            <table key={sectionIndex} className="border-collapse border border-black text-[10px] w-full mb-2 print-avoid-break">
-              <thead>
-                <tr>
-                  <th className="border border-black p-0.5 text-left bg-gray-200 font-bold">
-                    {section.section}
-                  </th>
-                  <th className="border border-black p-0.5 w-16 text-center bg-gray-200">à entretenir</th>
-                  <th className="border border-black p-0.5 w-16 text-center bg-gray-200">à travailler encore</th>
-                  <th className="border border-black p-0.5 w-16 text-center bg-gray-200">à investir</th>
-                </tr>
-                <tr>
-                  <td colSpan={4} className="border border-black p-0.5 bg-gray-100 text-[10px] italic whitespace-pre-wrap">
-                    {section.subtitle}
-                  </td>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Items */}
-                {section.items.map((item, itemIndex) => renderCompetenceRow(sectionIndex, itemIndex, item))}
-                {/* Commentaires */}
-                {section.hasComment && (
+          {competencesOfficiel.map((section, sectionIndex) => {
+            const sectionKeys = ['reglementaires', 'relationnelles', 'disciplinaires', 'pedagogiques', 'numeriques', 'developpement_pro'];
+            const categoryId = sectionKeys[sectionIndex];
+            const commentaire = rapport.competences?.[categoryId]?.commentaire || '';
+
+            return (
+              <table key={sectionIndex} className="border-collapse border border-black text-[10px] w-full mb-2 print-avoid-break">
+                <thead>
                   <tr>
-                    <td colSpan={4} className="border border-black p-0.5 bg-gray-50">
-                      <span className="font-bold">Commentaires :</span>
-                      <div className="h-4"></div>
+                    <th className="border border-black p-0.5 text-left bg-gray-200 font-bold">
+                      {section.section}
+                    </th>
+                    <th className="border border-black p-0.5 w-16 text-center bg-gray-200">à entretenir</th>
+                    <th className="border border-black p-0.5 w-16 text-center bg-gray-200">à travailler encore</th>
+                    <th className="border border-black p-0.5 w-16 text-center bg-gray-200">à investir</th>
+                  </tr>
+                  <tr>
+                    <td colSpan={4} className="border border-black p-0.5 bg-gray-100 text-[10px] italic whitespace-pre-wrap">
+                      {section.subtitle}
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          ))}
+                </thead>
+                <tbody>
+                  {/* Items */}
+                  {section.items.map((item, itemIndex) => renderCompetenceRow(sectionIndex, itemIndex, item))}
+                  {/* Commentaires */}
+                  {section.hasComment && (
+                    <tr>
+                      <td colSpan={4} className="border border-black p-0.5 bg-gray-50">
+                        <span className="font-bold">Commentaires :</span>
+                        <div className="whitespace-pre-wrap min-h-[16px] mt-1">
+                          {commentaire}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            );
+          })}
 
           <p className="text-xs mt-2 italic">
             Se rapporter au référentiel de compétences dans lequel chaque compétence est accompagnée d'items
