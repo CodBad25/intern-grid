@@ -41,7 +41,7 @@ export function SeancesHeader({
         </p>
       </div>
       
-      {(userRole === 'tuteur' || userRole === 'admin') && (
+      {(userRole === 'tuteur' || userRole === 'admin' || userRole === 'stagiaire') && (
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => resetForm()}>

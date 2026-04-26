@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Eye, UserCheck, Pl
 import { useData } from '@/context/DataContext';
 import { useAuth } from '@/context/AuthContext';
 import { useSeances } from '@/hooks/useSeances';
+import { createRapportVisiteTask } from '@/hooks/useSeanceTaskAutogen';
 import { useProfiles } from '@/hooks/useProfiles';
 import { SeanceForm } from './SeanceForm';
 import { Seance } from '@/types';
@@ -95,6 +96,8 @@ interface SeanceFormData {
   customType?: string;
   customLabel?: string;
   classeVisitee?: string;
+  sharedWithPeers?: boolean;
+  enseignantVisite?: string;
 }
 
 const defaultFormData: SeanceFormData = {
@@ -152,6 +155,7 @@ export function PlanningCalendar() {
       customLabel: seance.custom_label || '',
       classeVisitee: seance.classe_visitee || '',
       sharedWithPeers: seance.shared_with_peers || false,
+      enseignantVisite: seance.custom_label || '',
     });
     setIsFormOpen(true);
   };
@@ -160,7 +164,7 @@ export function PlanningCalendar() {
   const handleSeanceClick = (seance: Seance, e: React.MouseEvent) => {
     const isCreator = seance.tuteur_id === user?.id;
     const isShared = seance.shared_with_peers || false;
-    const canEdit = isTutor && (isCreator || isShared);
+    const canEdit = isCreator || (isTutor && isShared);
     if (canEdit) {
       openEditForm(seance, e);
     } else {
@@ -204,7 +208,7 @@ export function PlanningCalendar() {
         heure: formData.horaireMode === 'ordinaire' ? formData.heure : null,
         creneau: formData.horaireMode === 'creneau' ? formData.creneau : null,
         notes: formData.notes,
-        // custom_label: formData.customLabel || null, // Décommentez après avoir appliqué la migration SQL
+        custom_label: formData.enseignantVisite || formData.customLabel || null,
         classe_visitee: formData.classeVisitee || null,
         shared_with_peers: formData.sharedWithPeers || false,
       };
@@ -212,7 +216,11 @@ export function PlanningCalendar() {
       if (editingSeance) {
         await updateSeance(editingSeance.id, seanceData);
       } else {
-        await addSeance(seanceData);
+        const created = await addSeance(seanceData);
+        // Pour la stagiaire : auto-créer la tâche "Rédiger le rapport de la visite"
+        if (created && user.role === 'stagiaire' && seanceData.type === 'visite') {
+          await createRapportVisiteTask(created.id, user.id);
+        }
       }
       setIsFormOpen(false);
       resetForm();
@@ -224,6 +232,7 @@ export function PlanningCalendar() {
   };
 
   const isTutor = user?.role === 'tuteur' || user?.role === 'admin';
+  const canCreateSeance = isTutor || user?.role === 'stagiaire';
 
   // Fonction pour obtenir le style avec la couleur du tuteur et nuance selon le type
   const getTutorColorStyle = (tuteurId: string, type: string, isShared?: boolean) => {
@@ -426,7 +435,7 @@ export function PlanningCalendar() {
             Planning des visites et suivis
           </CardTitle>
           <div className="flex items-center gap-3">
-            {isTutor && (
+            {canCreateSeance && (
               <Button
                 onClick={() => { resetForm(); setIsFormOpen(true); }}
               >
@@ -498,8 +507,8 @@ export function PlanningCalendar() {
                           className={`p-1 sm:p-2 border h-12 sm:h-16 align-top ${
                             estNonTravaille ? 'bg-yellow-50' :
                             isSameDay(day, new Date()) ? 'bg-primary/5' : ''
-                          } ${isTutor ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                          onClick={() => isTutor && openFormWithPreset(day, creneau)}
+                          } ${canCreateSeance ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                          onClick={() => canCreateSeance && openFormWithPreset(day, creneau)}
                         >
                           {daySeances.map((seance) => {
                             const Icon = TYPE_ICONS[seance.type as keyof typeof TYPE_ICONS];
@@ -507,9 +516,9 @@ export function PlanningCalendar() {
                             const isShared = seance.custom_label && seance.custom_label.toLowerCase().includes('tréunion');
                             const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type, isShared);
                             const isCreator = seance.tuteur_id === user?.id;
-                            const canEdit = isTutor && (isCreator || isShared);
+                            const canEdit = isCreator || (isTutor && isShared);
                             const isMySeance = isCreator;
-                            const canView = !canEdit && isTutor;
+                            const canView = !canEdit;
                             const tutorProfile = getProfile(seance.tuteur_id);
                             const tutorFirstName = tutorProfile?.display_name?.split(' ')[0] || 'Tuteur';
 
@@ -630,9 +639,9 @@ export function PlanningCalendar() {
                     const isShared = seance.custom_label && seance.custom_label.toLowerCase().includes('tréunion');
                     const tutorStyle = getTutorColorStyle(seance.tuteur_id, seance.type, isShared);
                     const isCreator = seance.tuteur_id === user?.id;
-                    const canEdit = isTutor && (isCreator || isShared);
+                    const canEdit = isCreator || (isTutor && isShared);
                     const isMySeance = isCreator;
-                    const canView = !canEdit && isTutor;
+                    const canView = !canEdit;
                     const tutorProfile = getProfile(seance.tuteur_id);
                     const tutorFirstName = tutorProfile?.display_name?.split(' ')[0] || 'Tuteur';
 

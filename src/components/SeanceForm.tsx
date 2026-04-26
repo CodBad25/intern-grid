@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Eye, BookOpen, GraduationCap, UserCheck, MoreHorizontal, ChevronDown, ChevronRight, Target, ListTodo } from 'lucide-react';
 import { useLiens } from '@/hooks/useLiens';
+import { useAuth } from '@/context/AuthContext';
 import { ObjectivesSelector } from './ObjectivesSelector';
 import { TaskCreator } from './TaskCreator';
 
@@ -33,8 +34,9 @@ interface SeanceFormData {
   notes: string;
   customType?: string;
   customLabel?: string; // Label personnalisé pour visite/suivi
-  classeVisitee?: typeof CLASSES[number] | '';
+  classeVisitee?: string; // Ouvert au texte libre pour permettre les visites stagiaire
   sharedWithPeers?: boolean; // Séance partagée entre tuteurs
+  enseignantVisite?: string; // Stagiaire : nom du prof observé
 }
 
 interface SeanceFormProps {
@@ -58,8 +60,17 @@ export function SeanceForm({
 }: SeanceFormProps) {
   const selectableSeanceTypes = SEANCE_TYPES.filter(t => t.value !== 'formation' && t.value !== 'evaluation');
   const { saveLiens } = useLiens();
+  const { user } = useAuth();
+  const isStagiaire = user?.role === 'stagiaire';
   const [showObjectives, setShowObjectives] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
+
+  // Pour la stagiaire : type forcé à "visite" (elle ne fait pas de séances de suivi/autre)
+  useEffect(() => {
+    if (isStagiaire && formData.type !== 'visite') {
+      setFormData(prev => ({ ...prev, type: 'visite' }));
+    }
+  }, [isStagiaire, formData.type, setFormData]);
 
   const handleLinksExtracted = (links: string[]) => {
     if (editingSeance && links.length > 0) {
@@ -71,10 +82,14 @@ export function SeanceForm({
     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
       <DialogHeader className="pb-2">
         <DialogTitle>
-          {editingSeance ? 'Modifier la séance' : 'Nouvelle séance'}
+          {editingSeance
+            ? (isStagiaire ? 'Modifier la visite' : 'Modifier la séance')
+            : (isStagiaire ? 'Nouvelle visite' : 'Nouvelle séance')}
         </DialogTitle>
         <DialogDescription>
-          Renseignez les informations de la séance de suivi
+          {isStagiaire
+            ? 'Renseignez les informations de votre visite chez un collègue'
+            : 'Renseignez les informations de la séance de suivi'}
         </DialogDescription>
       </DialogHeader>
 
@@ -104,6 +119,7 @@ export function SeanceForm({
           </div>
         </div>
 
+        {!isStagiaire && (
         <div>
           <Label>Type de séance</Label>
           <div className="grid grid-cols-4 gap-2 mt-1">
@@ -141,6 +157,7 @@ export function SeanceForm({
             </div>
           )}
         </div>
+        )}
 
         <div>
           <Label>Mode horaire</Label>
@@ -197,8 +214,8 @@ export function SeanceForm({
           </div>
         )}
 
-        {/* Sélection de la classe (pour visite/suivi) */}
-        {(formData.type === 'visite' || formData.type === 'suivi') && (
+        {/* Sélection de la classe — boutons fermés pour les tuteurs, input libre pour la stagiaire */}
+        {!isStagiaire && (formData.type === 'visite' || formData.type === 'suivi') && (
           <div>
             <Label>Classe visitée</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
@@ -222,8 +239,32 @@ export function SeanceForm({
           </div>
         )}
 
-        {/* Label personnalisé (pour visite/suivi) */}
-        {(formData.type === 'visite' || formData.type === 'suivi') && (
+        {/* Stagiaire : enseignant visité + classe libre */}
+        {isStagiaire && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="enseignantVisite">Enseignant visité</Label>
+              <Input
+                id="enseignantVisite"
+                value={formData.enseignantVisite || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, enseignantVisite: e.target.value }))}
+                placeholder="Ex : M. Dupont (Maths)"
+              />
+            </div>
+            <div>
+              <Label htmlFor="classeVisiteeLibre">Classe visitée</Label>
+              <Input
+                id="classeVisiteeLibre"
+                value={formData.classeVisitee || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, classeVisitee: e.target.value }))}
+                placeholder="Ex : 5ᵉ A, Terminale, 3ᵉ C..."
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Label personnalisé (pour visite/suivi) — masqué pour la stagiaire */}
+        {!isStagiaire && (formData.type === 'visite' || formData.type === 'suivi') && (
           <div>
             <Label htmlFor="customLabel">Label personnalisé (optionnel)</Label>
             <Input
@@ -238,8 +279,8 @@ export function SeanceForm({
           </div>
         )}
 
-        {/* Séance partagée entre tuteurs (pour visite/suivi) */}
-        {(formData.type === 'visite' || formData.type === 'suivi') && (
+        {/* Séance partagée entre tuteurs (pour visite/suivi) — masqué pour la stagiaire */}
+        {!isStagiaire && (formData.type === 'visite' || formData.type === 'suivi') && (
           <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-md">
             <Switch
               id="sharedWithPeers"
@@ -269,8 +310,8 @@ export function SeanceForm({
           />
         </div>
 
-        {/* Sections collapsibles pour objectifs et tâches */}
-        {(formData.type === 'visite' || formData.type === 'suivi') && (
+        {/* Sections collapsibles pour objectifs et tâches — masqué pour la stagiaire (tâche auto-générée) */}
+        {!isStagiaire && (formData.type === 'visite' || formData.type === 'suivi') && (
           <div className="space-y-2">
             {/* Toggle Objectifs */}
             <button

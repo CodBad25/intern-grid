@@ -27,6 +27,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
 import { useSeances } from '../hooks/useSeances';
+import { createRapportVisiteTask } from '../hooks/useSeanceTaskAutogen';
 import { Seance } from '../types';
 import { SupabaseSeance } from '../hooks/useSeances';
 import { useAuth } from '../context/AuthContext';
@@ -78,6 +79,8 @@ export interface SeanceFormData {
   creneau?: typeof ALL_CRENEAUX[number] | '';
   notes: string;
   customType?: string; // utilisé uniquement côté UI lorsque type = "autre"
+  classeVisitee?: string; // texte libre (pour stagiaire) ou enum (tuteur)
+  enseignantVisite?: string; // stagiaire : prof observé, stocké dans custom_label
 }
 
 const defaultFormData: SeanceFormData = {
@@ -168,14 +171,20 @@ export function Seances() {
         ...(formData.horaireMode === 'ordinaire' && { heure: formData.heure }),
         notes: notesToSave,
         shared_with_peers: true,
+        classe_visitee: formData.classeVisitee || null,
+        custom_label: formData.enseignantVisite || null,
       };
 
       if (editingSeance) {
         await updateSeance(editingSeance.id, seanceData);
         toast.success('Séance modifiée avec succès');
       } else {
-        await addSeance(seanceData);
+        const created = await addSeance(seanceData);
         toast.success('Séance ajoutée avec succès');
+        // Pour la stagiaire : auto-créer la tâche "Rédiger le rapport de la visite"
+        if (created && user.role === 'stagiaire' && seanceData.type === 'visite') {
+          await createRapportVisiteTask(created.id, user.id);
+        }
       }
 
       setIsFormOpen(false);
@@ -210,6 +219,8 @@ export function Seances() {
       creneau: (seance.creneau || '') as typeof ALL_CRENEAUX[number] | '',
       notes: cleanNotes,
       customType,
+      classeVisitee: seance.classe_visitee || '',
+      enseignantVisite: seance.custom_label || '',
     });
     setIsFormOpen(true);
   };

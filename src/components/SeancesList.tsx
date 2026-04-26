@@ -82,7 +82,7 @@ export function SeancesList({
           : "Commencez par ajouter votre première séance de suivi"
         }
         icon={Calendar}
-        action={(userRole === 'tuteur' || userRole === 'admin') && !searchTerm && typeFilter === 'all' ? {
+        action={(userRole === 'tuteur' || userRole === 'admin' || userRole === 'stagiaire') && !searchTerm && typeFilter === 'all' ? {
           label: "Créer une séance",
           onClick: () => { resetForm(); setIsFormOpen(true); }
         } : undefined}

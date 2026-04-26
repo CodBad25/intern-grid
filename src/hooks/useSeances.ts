@@ -70,7 +70,7 @@ export function useSeances() {
   };
 
   const addSeance = async (seance: NewSeanceInput) => {
-    if (!user) return;
+    if (!user) return null;
     try {
       const { data, error } = await supabase
         .from('seances')
@@ -80,6 +80,7 @@ export function useSeances() {
 
       if (error) throw error;
       setSeances(prevSeances => [data as SupabaseSeance, ...prevSeances]);
+      return data as SupabaseSeance;
     } catch (error) {
       console.error('Erreur lors de l\'ajout de la séance:', error);
       throw error;
