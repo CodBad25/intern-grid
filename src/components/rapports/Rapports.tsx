@@ -16,6 +16,7 @@ import {
   Download
 } from 'lucide-react';
 import { useRapports } from '@/hooks/useRapports';
+import { useRapportPDF } from '@/hooks/useRapportPDF';
 import { RapportForm } from './RapportForm';
 import { RapportView } from './RapportView';
 import { useAuth } from '@/context/AuthContext';
@@ -33,8 +34,18 @@ const statusConfig = {
 export function Rapports() {
   const { user } = useAuth();
   const { rapportIntermediaire, rapportFinal, isLoading, createRapport, updateRapport } = useRapports();
+  const { generatePDF, isGenerating } = useRapportPDF();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selectedType, setSelectedType] = useState<RapportType | null>(null);
+
+  const isStagiaire = user?.role === 'stagiaire';
+
+  const handleDownloadPDF = async (type: RapportType) => {
+    const rapport = type === 'intermediaire' ? rapportIntermediaire : rapportFinal;
+    if (rapport) {
+      await generatePDF(rapport, type);
+    }
+  };
 
   const calculateProgress = (rapport: any): number => {
     if (!rapport) return 0;
@@ -209,25 +220,56 @@ export function Rapports() {
 
             <div className="flex gap-2 pt-2">
               {rapportIntermediaire ? (
-                <>
-                  <Button
-                    className="flex-1"
-                    onClick={() => handleOpenRapport('intermediaire', 'edit')}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleOpenRapport('intermediaire', 'view')}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Voir
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </>
+                isStagiaire ? (
+                  <>
+                    <Button
+                      className="flex-1"
+                      onClick={() => handleOpenRapport('intermediaire', 'view')}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Voir le rapport
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      title="Télécharger en PDF"
+                      onClick={() => handleDownloadPDF('intermediaire')}
+                      disabled={isGenerating}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      className="flex-1"
+                      onClick={() => handleOpenRapport('intermediaire', 'edit')}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Modifier
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenRapport('intermediaire', 'view')}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Voir
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      title="Télécharger en PDF"
+                      onClick={() => handleDownloadPDF('intermediaire')}
+                      disabled={isGenerating}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </>
+                )
+              ) : isStagiaire ? (
+                <p className="w-full text-sm text-muted-foreground text-center py-3">
+                  Aucun rapport partagé par vos tuteurs pour le moment.
+                </p>
               ) : (
                 <Button
                   className="w-full"
@@ -290,7 +332,32 @@ export function Rapports() {
             </div>
 
             <div className="flex gap-2 pt-2">
-              {canEditFinal ? (
+              {isStagiaire ? (
+                rapportFinal ? (
+                  <>
+                    <Button
+                      className="flex-1"
+                      onClick={() => handleOpenRapport('final', 'view')}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Voir le rapport
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      title="Télécharger en PDF"
+                      onClick={() => handleDownloadPDF('final')}
+                      disabled={isGenerating}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <p className="w-full text-sm text-muted-foreground text-center py-3">
+                    Aucun rapport partagé par vos tuteurs pour le moment.
+                  </p>
+                )
+              ) : canEditFinal ? (
                 rapportFinal ? (
                   <>
                     <Button
@@ -307,7 +374,13 @@ export function Rapports() {
                       <Eye className="h-4 w-4 mr-2" />
                       Voir
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      title="Télécharger en PDF"
+                      onClick={() => handleDownloadPDF('final')}
+                      disabled={isGenerating}
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
                   </>
@@ -331,25 +404,27 @@ export function Rapports() {
         </Card>
       </div>
 
-      {/* Info box */}
-      <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 h-fit">
-              <Users className="h-5 w-5 text-blue-600" />
+      {/* Info box (réservée aux tuteurs) */}
+      {!isStagiaire && (
+        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50 h-fit">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                  Collaboration en temps réel
+                </h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  Vous et votre co-tuteur pouvez modifier le rapport simultanément.
+                  Les modifications sont synchronisées automatiquement.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
-                Collaboration en temps réel
-              </h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                Vous et votre co-tuteur pouvez modifier le rapport simultanément.
-                Les modifications sont synchronisées automatiquement.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

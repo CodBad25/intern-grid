@@ -48,6 +48,21 @@ const competenceColorsFinal: Record<string, string> = {
   non_observe: 'text-gray-500 bg-gray-100',
 };
 
+// Normalise une valeur de compétence (string ou { tuteur1, tuteur2 }) en string affichable.
+// Renvoie null si vide ou non interprétable.
+const normalizeCompetenceValue = (raw: any): string | null => {
+  if (!raw) return null;
+  if (typeof raw === 'string') return raw;
+  if (typeof raw === 'object') {
+    const t1 = raw.tuteur1;
+    const t2 = raw.tuteur2;
+    if (t1 && t2) return t1 === t2 ? t1 : `${t1}/${t2}`;
+    if (t1) return t1;
+    if (t2) return t2;
+  }
+  return null;
+};
+
 export function RapportView({ rapport, type, onBack }: RapportViewProps) {
   const { generatePDF, isGenerating } = useRapportPDF();
 
@@ -250,13 +265,15 @@ export function RapportView({ rapport, type, onBack }: RapportViewProps) {
         <CardContent>
           <div className="space-y-4">
             {Object.entries(rapport.competences || {}).map(([category, items]: [string, any]) => {
-              const filledItems = Object.entries(items).filter(
-                ([key, value]) => key !== 'commentaire' && value
-              );
-              if (filledItems.length === 0) return null;
-
               const labels = type === 'intermediaire' ? competenceLabelsIntermed : competenceLabelsFinal;
               const colors = type === 'intermediaire' ? competenceColorsIntermed : competenceColorsFinal;
+
+              const filledItems = Object.entries(items)
+                .filter(([key]) => key !== 'commentaire')
+                .map(([key, value]) => [key, normalizeCompetenceValue(value)] as [string, string | null])
+                .filter(([, value]) => value);
+
+              if (filledItems.length === 0) return null;
 
               return (
                 <div key={category}>
@@ -264,12 +281,12 @@ export function RapportView({ rapport, type, onBack }: RapportViewProps) {
                     {category.replace(/_/g, ' ')}
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {filledItems.map(([key, value]: [string, any]) => (
+                    {filledItems.map(([key, value]) => (
                       <Badge
                         key={key}
-                        className={colors[value as string] || 'bg-gray-100'}
+                        className={colors[value!] || 'bg-gray-100'}
                       >
-                        {key.replace(/_/g, ' ')}: {labels[value as string] || value}
+                        {key.replace(/_/g, ' ')}: {labels[value!] || value}
                       </Badge>
                     ))}
                   </div>

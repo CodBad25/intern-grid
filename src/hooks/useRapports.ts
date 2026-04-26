@@ -97,10 +97,10 @@ export function useRapports() {
 
       console.log('[useRapports] Rapports missing tuteur2_id:', rapportsSansTuteur2.length);
 
-      // Chercher l'ID de l'autre tuteur
+      // Chercher l'ID de l'autre tuteur et du stagiaire
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, display_name');
+        .select('user_id, display_name, role');
 
       if (profilesError) {
         console.error('[useRapports] Error fetching profiles:', profilesError);
@@ -117,8 +117,9 @@ export function useRapports() {
         p.display_name?.toLowerCase().includes('badri') ||
         p.display_name?.toLowerCase().includes('belhaj')
       );
+      const stagiaire = profiles?.find(p => p.role === 'stagiaire');
 
-      console.log('[useRapports] Laurence:', laurence, 'Badri:', badri);
+      console.log('[useRapports] Laurence:', laurence, 'Badri:', badri, 'Stagiaire:', stagiaire);
 
       for (const rapport of rapportsSansTuteur2) {
         // Si tuteur1 est Laurence, tuteur2 est Badri et vice versa
@@ -143,6 +144,25 @@ export function useRapports() {
           } else {
             console.log('[useRapports] Rapport updated successfully');
             // Rafraîchir les données après fix
+            queryClient.invalidateQueries({ queryKey: ['rapports'] });
+          }
+        }
+      }
+
+      // Auto-fix stagiaire_id manquant (sinon RLS bloque la lecture côté stagiaire)
+      const rapportsSansStagiaireId = rapports.filter(r => !r.stagiaire_id);
+      if (rapportsSansStagiaireId.length > 0 && stagiaire?.user_id) {
+        console.log(`[useRapports] Fixing ${rapportsSansStagiaireId.length} rapport(s) missing stagiaire_id`);
+        for (const rapport of rapportsSansStagiaireId) {
+          const { error: updateError } = await supabase
+            .from('rapports')
+            .update({ stagiaire_id: stagiaire.user_id })
+            .eq('id', rapport.id);
+
+          if (updateError) {
+            console.error('[useRapports] Error updating stagiaire_id:', updateError);
+          } else {
+            console.log(`[useRapports] Rapport ${rapport.id}: stagiaire_id ajouté`);
             queryClient.invalidateQueries({ queryKey: ['rapports'] });
           }
         }
@@ -174,10 +194,10 @@ export function useRapports() {
         throw new Error('Rapport already exists');
       }
 
-      // Chercher les deux tuteurs dans les profils
+      // Chercher les deux tuteurs et le stagiaire dans les profils
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, display_name');
+        .select('user_id, display_name, role');
 
       const laurence = profiles?.find(p =>
         p.display_name?.toLowerCase().includes('laurence') ||
@@ -187,6 +207,7 @@ export function useRapports() {
         p.display_name?.toLowerCase().includes('badri') ||
         p.display_name?.toLowerCase().includes('belhaj')
       );
+      const stagiaire = profiles?.find(p => p.role === 'stagiaire');
 
       const newRapport = {
         type,
@@ -194,6 +215,7 @@ export function useRapports() {
         status: 'brouillon' as const,
         tuteur1_id: laurence?.user_id || user.id,
         tuteur2_id: badri?.user_id || null,
+        stagiaire_id: stagiaire?.user_id || null,
         // Pré-remplissage avec les informations réelles
         stagiaire_nom: 'V',
         stagiaire_prenom: 'Barbara',
