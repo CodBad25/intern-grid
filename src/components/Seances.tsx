@@ -28,6 +28,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Switch } from '@/components/ui/switch';
 import { useSeances } from '../hooks/useSeances';
 import { createRapportVisiteTask } from '../hooks/useSeanceTaskAutogen';
+import { labelHorsClasse } from '@/lib/calendrier-vacances';
 import { Seance } from '../types';
 import { SupabaseSeance } from '../hooks/useSeances';
 import { useAuth } from '../context/AuthContext';
@@ -154,6 +155,15 @@ export function Seances() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Stagiaire : bloque les visites en vacances ou jour férié (pas cours = pas de visite possible)
+    if (user.role === 'stagiaire' && formData.date) {
+      const periode = labelHorsClasse(new Date(formData.date));
+      if (periode) {
+        toast.error(`Impossible : il n'y a pas cours pendant les ${periode}.`);
+        return;
+      }
+    }
 
     setIsLoading(true);
     try {

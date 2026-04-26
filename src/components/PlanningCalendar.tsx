@@ -16,6 +16,8 @@ import { ALL_CRENEAUX } from '@/types';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, addDays, isSameDay, startOfMonth, endOfMonth, addMonths, subMonths, eachDayOfInterval, isSameMonth
 } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { isVacances, isJourFerie, labelHorsClasse } from '@/lib/calendrier-vacances';
+import toast from 'react-hot-toast';
 
 const CRENEAUX = ['M1', 'M2', 'M3', 'M4', 'S1', 'S2', 'S3', 'S4'] as const;
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'] as const;
@@ -37,50 +39,6 @@ const TYPE_ICONS = {
   formation: BookOpen,
   evaluation: GraduationCap,
   autre: MoreHorizontal,
-};
-
-// Vacances scolaires Zone B (Nantes) 2024-2025 et 2025-2026
-const VACANCES_ZONE_B = [
-  // Été 2025 (année scolaire 2024-2025)
-  { debut: new Date('2025-07-05'), fin: new Date('2025-09-01') },
-  // Toussaint 2025 (samedi 18 octobre au lundi 3 novembre 2025)
-  { debut: new Date('2025-10-18'), fin: new Date('2025-11-03') },
-  // Noël 2025 (samedi 20 décembre 2025 au lundi 5 janvier 2026)
-  { debut: new Date('2025-12-20'), fin: new Date('2026-01-05') },
-  // Hiver 2026 (samedi 21 février au lundi 9 mars 2026)
-  { debut: new Date('2026-02-21'), fin: new Date('2026-03-09') },
-  // Printemps 2026 (samedi 18 avril au lundi 4 mai 2026)
-  { debut: new Date('2026-04-18'), fin: new Date('2026-05-04') },
-  // Été 2026 (samedi 4 juillet 2026)
-  { debut: new Date('2026-07-04'), fin: new Date('2026-09-01') },
-];
-
-// Jours fériés 2025-2026
-const JOURS_FERIES = [
-  new Date('2025-11-01'), // Toussaint
-  new Date('2025-11-11'), // Armistice 1918
-  new Date('2025-12-25'), // Noël
-  new Date('2026-01-01'), // Jour de l'an
-  new Date('2026-04-06'), // Lundi de Pâques
-  new Date('2026-05-01'), // Fête du travail
-  new Date('2026-05-08'), // Victoire 1945
-  new Date('2026-05-14'), // Ascension
-  new Date('2026-05-25'), // Lundi de Pentecôte
-  new Date('2026-07-14'), // Fête nationale
-];
-
-const isVacances = (date: Date): boolean => {
-  return VACANCES_ZONE_B.some(periode =>
-    date >= periode.debut && date <= periode.fin
-  );
-};
-
-const isJourFerie = (date: Date): boolean => {
-  return JOURS_FERIES.some(ferie =>
-    ferie.getFullYear() === date.getFullYear() &&
-    ferie.getMonth() === date.getMonth() &&
-    ferie.getDate() === date.getDate()
-  );
 };
 
 type ViewMode = 'semaine' | 'mois';
@@ -198,6 +156,15 @@ export function PlanningCalendar() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Stagiaire : bloque les visites en vacances ou jour férié (pas cours = pas de visite possible)
+    if (user.role === 'stagiaire' && formData.date) {
+      const periode = labelHorsClasse(new Date(formData.date));
+      if (periode) {
+        toast.error(`Impossible : il n'y a pas cours pendant les ${periode}.`);
+        return;
+      }
+    }
 
     setIsLoading(true);
     try {
@@ -507,8 +474,15 @@ export function PlanningCalendar() {
                           className={`p-1 sm:p-2 border h-12 sm:h-16 align-top ${
                             estNonTravaille ? 'bg-yellow-50' :
                             isSameDay(day, new Date()) ? 'bg-primary/5' : ''
-                          } ${canCreateSeance ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-                          onClick={() => canCreateSeance && openFormWithPreset(day, creneau)}
+                          } ${canCreateSeance && !(user?.role === 'stagiaire' && estNonTravaille) ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+                          onClick={() => {
+                            if (!canCreateSeance) return;
+                            if (user?.role === 'stagiaire' && estNonTravaille) {
+                              toast.error(`Pas de visite possible : ${estVacances ? 'vacances scolaires' : 'jour férié'}.`);
+                              return;
+                            }
+                            openFormWithPreset(day, creneau);
+                          }}
                         >
                           {daySeances.map((seance) => {
                             const Icon = TYPE_ICONS[seance.type as keyof typeof TYPE_ICONS];
