@@ -341,7 +341,7 @@ const AxeTable = ({ index, axe, compact = false }: { index: number; axe: any; co
   );
 };
 
-// Composant Section Compétences
+// Composant Section Compétences (rapport intermédiaire : 3 colonnes "à entretenir / à travailler / à investir")
 const CompetenceSection = ({ section, rapport }: { section: typeof competencesOfficiel[0]; rapport: any }) => {
   const commentaire = rapport.competences?.[section.categoryId]?.commentaire || '';
 
@@ -401,7 +401,186 @@ const CompetenceSection = ({ section, rapport }: { section: typeof competencesOf
   );
 };
 
-export const RapportPDF = ({ rapport }: RapportPDFProps) => (
+// Composant Section Compétences (rapport final : 3 colonnes "suffisant / insuffisant / non observé" — Annexe 3.1)
+const CompetenceSectionFinal = ({ section, rapport }: { section: typeof competencesOfficiel[0]; rapport: any }) => {
+  const commentaire = rapport.competences?.[section.categoryId]?.commentaire || '';
+
+  return (
+    <View style={styles.table} wrap={false}>
+      {/* Header */}
+      <View style={styles.competenceHeader}>
+        <View style={styles.competenceLabel}>
+          <Text>{section.section}</Text>
+        </View>
+        <View style={styles.competenceCol}>
+          <Text>suffisant</Text>
+        </View>
+        <View style={styles.competenceCol}>
+          <Text>insuffisant</Text>
+        </View>
+        <View style={styles.competenceCol}>
+          <Text>non observé</Text>
+        </View>
+      </View>
+      {/* Subtitle */}
+      <View style={styles.tableRow}>
+        <View style={[styles.competenceSubtitle, { width: '100%' }]}>
+          <Text>{section.subtitle}</Text>
+        </View>
+      </View>
+      {/* Items */}
+      {section.items.map((item) => {
+        const value = getCompetenceValue(rapport, section.categoryId, item.id);
+        const isSuffisant = value === 'suffisant' || value === 'entretenir';
+        const isInsuffisant = value === 'insuffisant' || value === 'travailler' || value === 'investir';
+        const isNonObserve = value === 'non_observe';
+
+        return (
+          <View key={item.id} style={styles.competenceRow}>
+            <View style={styles.competenceItem}>
+              <Text>{item.label}</Text>
+            </View>
+            <View style={styles.competenceCheck}>
+              <Text>{isSuffisant ? 'X' : ''}</Text>
+            </View>
+            <View style={styles.competenceCheck}>
+              <Text>{isInsuffisant ? 'X' : ''}</Text>
+            </View>
+            <View style={styles.competenceCheck}>
+              <Text>{isNonObserve ? 'X' : ''}</Text>
+            </View>
+          </View>
+        );
+      })}
+      {/* Observations */}
+      <View style={styles.commentSection}>
+        <Text style={styles.commentLabel}>Observations :</Text>
+        <Text>{commentaire}</Text>
+      </View>
+    </View>
+  );
+};
+
+// Document du rapport FINAL — trame Annexe 3.1 (jury académique, session 2026)
+const RapportFinalDocument = ({ rapport }: { rapport: any }) => (
+  <Document>
+    {/* Page 1 : En-tête + Identification + Cadre du stage */}
+    <Page size="A4" style={styles.page}>
+      {/* En-tête officiel */}
+      <View style={styles.header}>
+        <Text style={styles.title}>
+          Rapport final tuteur des professeurs stagiaires évalués par un jury académique
+        </Text>
+        <Text style={styles.subtitle}>SESSION {rapport.annee_scolaire?.split('-')[1] || '2026'}</Text>
+        <Text style={styles.italic}>À déposer dans COMPAS pour le lundi 4 mai 2026.</Text>
+      </View>
+
+      {/* Tableaux Stagiaire + Tuteurs */}
+      <View style={styles.grid3}>
+        <View style={styles.gridCol}>
+          <InfoTable
+            title="STAGIAIRE :"
+            rows={[
+              { label: 'Nom', value: rapport.stagiaire_nom },
+              { label: 'Prénom', value: rapport.stagiaire_prenom },
+              { label: 'Corps', value: rapport.stagiaire_corps },
+              { label: "Établissement d'exercice", value: rapport.stagiaire_etablissement },
+              { label: 'Discipline', value: rapport.stagiaire_discipline },
+            ]}
+          />
+        </View>
+        <View style={styles.gridCol}>
+          <InfoTable
+            title="TUTEUR 1 :"
+            rows={[
+              { label: 'Nom', value: rapport.tuteur1_nom },
+              { label: 'Prénom', value: rapport.tuteur1_prenom },
+              { label: "Établissement d'exercice", value: rapport.tuteur1_etablissement },
+              { label: 'Discipline', value: rapport.tuteur1_discipline },
+            ]}
+          />
+        </View>
+        <View style={styles.gridCol}>
+          <InfoTable
+            title="TUTEUR 2 :"
+            rows={[
+              { label: 'Nom', value: rapport.tuteur2_nom },
+              { label: 'Prénom', value: rapport.tuteur2_prenom },
+              { label: "Établissement d'exercice", value: rapport.tuteur2_etablissement },
+              { label: 'Discipline', value: rapport.tuteur2_discipline },
+            ]}
+          />
+        </View>
+      </View>
+
+      {/* Cadre du stage */}
+      <View style={{ marginBottom: 8 }}>
+        <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+          Objectif : Dresser un état de l'acquisition des compétences professionnelles du stagiaire.
+        </Text>
+        <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>Rappel du cadre du stage en établissement</Text>
+        <Text style={{ fontSize: 8, fontStyle: 'italic', marginBottom: 6 }}>
+          Accompagnement personnalisé, aide au travail personnel, programme personnalisé de réussite éducative,
+          groupe de compétences, classes à effectif réduit, classes à examen, itinéraires de découverte,
+          travaux personnels encadrés…
+        </Text>
+        <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+          Évaluation pour chacun des domaines de compétences ci-après
+        </Text>
+        <Text style={{ fontSize: 8, marginBottom: 4 }}>
+          Le rapport doit retracer l'évolution de la pratique du stagiaire pendant l'année de stage et souligner
+          la dynamique des progrès réalisés, dans le cadre fixé par le référentiel de compétences publié dans le
+          BO du 25 juillet 2013.
+        </Text>
+        <Text style={{ fontSize: 8, fontStyle: 'italic' }}>
+          Si des compétences du domaine sont identifiées insuffisantes, le commentaire est à préciser pour chacune
+          de ces dernières. CC : compétences communes.
+        </Text>
+      </View>
+    </Page>
+
+    {/* Page 2 : Compétences 1-3 */}
+    <Page size="A4" style={styles.page}>
+      <CompetenceSectionFinal section={competencesOfficiel[0]} rapport={rapport} />
+      <CompetenceSectionFinal section={competencesOfficiel[1]} rapport={rapport} />
+      <CompetenceSectionFinal section={competencesOfficiel[2]} rapport={rapport} />
+    </Page>
+
+    {/* Page 3 : Compétences 4-6 */}
+    <Page size="A4" style={styles.page}>
+      <CompetenceSectionFinal section={competencesOfficiel[3]} rapport={rapport} />
+      <CompetenceSectionFinal section={competencesOfficiel[4]} rapport={rapport} />
+      <CompetenceSectionFinal section={competencesOfficiel[5]} rapport={rapport} />
+    </Page>
+
+    {/* Page 4 : Synthèse + Signatures */}
+    <Page size="A4" style={styles.page}>
+      <Text style={styles.sectionTitle}>Synthèse</Text>
+      <View style={styles.table}>
+        <View style={styles.tableRow}>
+          <View style={[styles.tableCell, { width: '100%', minHeight: 200 }]}>
+            <Text>{rapport.synthese?.contenu || ''}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Signatures */}
+      <View style={styles.signatureTable}>
+        <View style={styles.signatureCell}>
+          <Text>Date : {rapport.signature_tuteur1_date ? new Date(rapport.signature_tuteur1_date).toLocaleDateString('fr-FR') : ''}</Text>
+          <Text style={{ marginTop: 10 }}>Signature du (des) tuteurs :</Text>
+        </View>
+        <View style={styles.signatureCell}>
+          <Text>Date : {rapport.signature_stagiaire_date ? new Date(rapport.signature_stagiaire_date).toLocaleDateString('fr-FR') : ''}</Text>
+          <Text style={{ marginTop: 10 }}>Signature du stagiaire :</Text>
+        </View>
+      </View>
+    </Page>
+  </Document>
+);
+
+// Document du rapport INTERMÉDIAIRE (mise en page interne, inchangée)
+const RapportIntermediaireDocument = ({ rapport }: { rapport: any }) => (
   <Document>
     {/* Page 1 : En-tête + Infos + Modalités + Axe 1 */}
     <Page size="A4" style={styles.page}>
@@ -557,5 +736,11 @@ export const RapportPDF = ({ rapport }: RapportPDFProps) => (
     </Page>
   </Document>
 );
+
+// Export principal — dispatche selon le type du rapport
+export const RapportPDF = ({ rapport }: RapportPDFProps) =>
+  rapport?.type === 'final'
+    ? <RapportFinalDocument rapport={rapport} />
+    : <RapportIntermediaireDocument rapport={rapport} />;
 
 export default RapportPDF;

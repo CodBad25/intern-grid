@@ -1,5 +1,5 @@
 import React from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import { RapportPDF } from './RapportPDF';
 
 interface RapportPrintViewProps {
@@ -133,6 +133,41 @@ const itemIdMapping: Record<string, Record<string, number>> = {
 };
 
 export function RapportPrintView({ rapport, onClose }: RapportPrintViewProps) {
+  // Rapport final : aperçu PDF natif (rendu identique au pixel près au fichier téléchargé,
+  // produit par le composant `RapportFinalDocument` conforme à l'Annexe 3.1).
+  if (rapport.type === 'final') {
+    const fileName = `Rapport_final_${rapport.stagiaire_nom || ''}_${rapport.stagiaire_prenom || ''}_${rapport.annee_scolaire || '2025-2026'}.pdf`.replace(/\s+/g, '_');
+    return (
+      <div className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
+        <div className="bg-white border-b shadow-sm p-3 flex items-center justify-between gap-4">
+          <h2 className="font-semibold text-gray-800">
+            Aperçu du rapport final — {rapport.stagiaire_prenom} {rapport.stagiaire_nom}
+          </h2>
+          <div className="flex gap-2">
+            <PDFDownloadLink
+              document={<RapportPDF rapport={rapport} />}
+              fileName={fileName}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+            >
+              {({ loading }) => (loading ? 'Génération…' : 'Télécharger PDF')}
+            </PDFDownloadLink>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 bg-gray-200">
+          <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={false}>
+            <RapportPDF rapport={rapport} />
+          </PDFViewer>
+        </div>
+      </div>
+    );
+  }
+
   const handlePrint = () => {
     window.print();
   };

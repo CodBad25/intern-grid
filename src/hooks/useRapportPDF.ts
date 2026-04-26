@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import React from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { pdf } from '@react-pdf/renderer';
 import { toast } from 'sonner';
+import { RapportPDF } from '@/components/rapports/RapportPDF';
 
 export function useRapportPDF() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -9,6 +12,29 @@ export function useRapportPDF() {
   const generatePDF = async (rapport: any, type: 'intermediaire' | 'final') => {
     setIsGenerating(true);
 
+    // Rapport final : on utilise le générateur react-pdf qui produit la trame officielle Annexe 3.1
+    if (type === 'final') {
+      try {
+        const blob = await pdf(React.createElement(RapportPDF, { rapport })).toBlob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Rapport_final_${rapport.stagiaire_nom || ''}_${rapport.stagiaire_prenom || ''}_${rapport.annee_scolaire || '2025-2026'}.pdf`.replace(/\s+/g, '_');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success('PDF généré (trame officielle Annexe 3.1)');
+      } catch (error) {
+        console.error('Erreur génération PDF rapport final:', error);
+        toast.error('Erreur lors de la génération du PDF');
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
+
+    // Rapport intermédiaire : générateur jsPDF (rendu actuel)
     try {
       const doc = new jsPDF('p', 'mm', 'a4');
       const pageWidth = doc.internal.pageSize.getWidth();

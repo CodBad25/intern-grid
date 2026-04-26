@@ -44,6 +44,9 @@ export interface Rapport {
     a_conforter?: string;
     a_travailler?: string;
   };
+  synthese?: {
+    contenu?: string;
+  };
   signature_tuteur1_date?: string;
   signature_tuteur2_date?: string;
   signature_stagiaire_date?: string;
@@ -209,27 +212,40 @@ export function useRapports() {
       );
       const stagiaire = profiles?.find(p => p.role === 'stagiaire');
 
+      // Si on crée un rapport final, on copie les infos identifiantes du rapport
+      // intermédiaire existant pour ne pas avoir à les ressaisir.
+      let identite = null as null | Record<string, any>;
+      if (type === 'final') {
+        const { data: rapportInter } = await supabase
+          .from('rapports')
+          .select('stagiaire_id, tuteur1_id, tuteur2_id, stagiaire_nom, stagiaire_prenom, stagiaire_corps, stagiaire_etablissement, stagiaire_discipline, tuteur1_nom, tuteur1_prenom, tuteur1_etablissement, tuteur1_discipline, tuteur2_nom, tuteur2_prenom, tuteur2_etablissement, tuteur2_discipline')
+          .eq('type', 'intermediaire')
+          .eq('annee_scolaire', '2025-2026')
+          .maybeSingle();
+        if (rapportInter) identite = rapportInter;
+      }
+
       const newRapport = {
         type,
         annee_scolaire: '2025-2026',
         status: 'brouillon' as const,
-        tuteur1_id: laurence?.user_id || user.id,
-        tuteur2_id: badri?.user_id || null,
-        stagiaire_id: stagiaire?.user_id || null,
-        // Pré-remplissage avec les informations réelles
-        stagiaire_nom: 'V',
-        stagiaire_prenom: 'Barbara',
-        stagiaire_corps: 'Certifié',
-        stagiaire_etablissement: '',
-        stagiaire_discipline: 'Mathématiques',
-        tuteur1_nom: 'Mauny',
-        tuteur1_prenom: 'Laurence',
-        tuteur1_etablissement: '',
-        tuteur1_discipline: 'Physique-Chimie',
-        tuteur2_nom: 'Belhaj',
-        tuteur2_prenom: 'Badri',
-        tuteur2_etablissement: '',
-        tuteur2_discipline: 'Mathématiques',
+        tuteur1_id: identite?.tuteur1_id || laurence?.user_id || user.id,
+        tuteur2_id: identite?.tuteur2_id || badri?.user_id || null,
+        stagiaire_id: identite?.stagiaire_id || stagiaire?.user_id || null,
+        // Pré-remplissage : depuis le rapport intermédiaire si dispo, sinon valeurs par défaut
+        stagiaire_nom: identite?.stagiaire_nom ?? 'V',
+        stagiaire_prenom: identite?.stagiaire_prenom ?? 'Barbara',
+        stagiaire_corps: identite?.stagiaire_corps ?? 'Certifié',
+        stagiaire_etablissement: identite?.stagiaire_etablissement ?? '',
+        stagiaire_discipline: identite?.stagiaire_discipline ?? 'Mathématiques',
+        tuteur1_nom: identite?.tuteur1_nom ?? 'Mauny',
+        tuteur1_prenom: identite?.tuteur1_prenom ?? 'Laurence',
+        tuteur1_etablissement: identite?.tuteur1_etablissement ?? '',
+        tuteur1_discipline: identite?.tuteur1_discipline ?? 'Physique-Chimie',
+        tuteur2_nom: identite?.tuteur2_nom ?? 'Belhaj',
+        tuteur2_prenom: identite?.tuteur2_prenom ?? 'Badri',
+        tuteur2_etablissement: identite?.tuteur2_etablissement ?? '',
+        tuteur2_discipline: identite?.tuteur2_discipline ?? 'Mathématiques',
         modalites: {
           visites_tuteur: '',
           visites_stagiaire: '',
