@@ -518,16 +518,18 @@ export function ItemsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Button
-                    size="sm"
-                    variant={item.isCompleted ? "default" : "outline"}
-                    onClick={() => handleToggleCompleted(item)}
-                    disabled={item.isValidated}
-                    className="flex items-center gap-2"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    {item.isCompleted ? 'Réalisé' : 'Marquer comme réalisé'}
-                  </Button>
+                  {(isTutor || item.type === 'tache') && (
+                    <Button
+                      size="sm"
+                      variant={item.isCompleted ? "default" : "outline"}
+                      onClick={() => handleToggleCompleted(item)}
+                      disabled={item.isValidated}
+                      className="flex items-center gap-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      {item.isCompleted ? 'Réalisé' : 'Marquer comme réalisé'}
+                    </Button>
+                  )}
                   {isTutor && (
                     <Button
                       size="sm"
